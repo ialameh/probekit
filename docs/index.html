@@ -113,14 +113,15 @@ mark { background: var(--warn-soft); color: inherit; border-radius: 2px; }
   <span class="count" id="count"></span>
   <span class="spacer"></span>
   <nav aria-label="Resources">
+    <a href="https://probekit.orgparity.com/investigations.html">All investigations</a>
     <a href="https://probekit.orgparity.com/field-access.html">Field-access checker</a>
     <a href="https://github.com/ialameh/probekit">GitHub</a>
-    <a href="https://github.com/ialameh/probekit/archive/refs/heads/main.zip">Download ZIP</a>
+    <a href="https://github.com/ialameh/probekit/releases/latest/download/probekit.zip">Download ZIP</a>
     <a href="https://probekit.orgparity.com/getting-started.html">How to use</a>
   </nav>
   <button class="iconbtn" id="theme" title="Switch light or dark">Theme</button>
 </header>
-<div class="start-here"><strong>No installation needed.</strong> <a href="https://probekit.orgparity.com/field-access.html">Investigate a user’s field access</a> with a guided query workflow, local result analysis and a downloadable report.</div>
+<div class="start-here"><strong>No installation needed.</strong> <a href="https://probekit.orgparity.com/investigations.html">Explore 61 guided investigations</a> with query steps, local result analysis, comparisons and downloadable reports.</div>
 <main>
   <aside id="side">
     <div class="search"><input id="q" type="search" placeholder="Search: object, field, question, trap... ( / )" autocomplete="off"></div>
@@ -141,6 +142,7 @@ const FAMILY_TEXT = {
 };
 const state = { q: '', families: new Set(), current: null, values: {}, org: 'dev', ticket: '' };
 const $ = (s) => document.querySelector(s);
+const workspaceHref = (path) => location.protocol === 'file:' ? 'https://probekit.orgparity.com' + path : path;
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 // One searchable text per probe: id, question, objects queried, params, traps, verdicts.
@@ -231,6 +233,7 @@ function renderDetail() {
   $('#detail').innerHTML = `
     <div class="crumb">${esc(p.family)} / ${esc(FAMILY_TEXT[p.family] || '')}</div>
     <h2>${esc(p.question)}</h2>
+    <p><a href="${workspaceHref('/investigations.html#' + p.id)}">Open guided investigation →</a></p>
     <div class="tags">
       <span class="tag" style="font-family:var(--mono)">${esc(p.id)}</span>
       <span class="tag ${p.safety.writes ? 'writes' : 'read'}">${p.safety.writes ? 'writes' : 'read-only'}</span>
@@ -344,6 +347,7 @@ $('#theme').addEventListener('click', () => {
 try { const t = localStorage.getItem('probekit-theme'); if (t) document.documentElement.dataset.theme = t; } catch {}
 
 $('#count').textContent = `${PROBES.length} probes`;
+if (location.protocol !== 'file:') document.querySelectorAll('a[href^="https://probekit.orgparity.com/"]').forEach((a) => { const u = new URL(a.href); a.setAttribute('href', u.pathname + u.search + u.hash); });
 renderFamilies();
 const first = PROBES.slice().sort((a, b) => a.id.localeCompare(b.id))[0];
 select(PROBES.some((p) => p.id === location.hash.slice(1)) ? location.hash.slice(1) : first.id, false);

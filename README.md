@@ -1,6 +1,32 @@
-# probekit
+# ProbeKit
 
-A free Salesforce tool by [OrgParity](https://orgparity.com).
+A free Salesforce investigation tool by [OrgParity](https://orgparity.com).
+
+[Use online](https://probekit.orgparity.com/investigations.html) · [Download](https://github.com/ialameh/probekit/releases/latest/download/probekit.zip) · [Getting started](https://probekit.orgparity.com/getting-started.html) · [Release notes](CHANGELOG.md)
+
+Investigate access, metadata, flows, OmniStudio, operations and data with 61 guided workflows. Build read-only queries, analyse JSON/CSV exports, compare results and download findings. Browser analysis requires no installation or account.
+
+![ProbeKit investigation workspace](docs/images/workspace.png)
+
+## Investigation workspace
+
+Use the [online workspace](https://probekit.orgparity.com/investigations.html), or build and preview locally with [pnpm](https://pnpm.io/installation) and Node.js 20+:
+
+```sh
+pnpm run preview:web
+```
+
+Open http://127.0.0.1:4794/investigations.html. All 61 catalogue investigations
+support typed parameters, dependent query steps, JSON/CSV imports, scoped evidence
+summaries, fictional samples, text/JSON reports and two-export comparison. The
+preview command serves local files only; it does not publish or connect to Salesforce.
+
+Use the Standard API or Tooling API indicated on each step. Import complete exports
+from the same investigation. Replacing a result invalidates subsequent imports on
+that side. An unavailable result blocks dependent checks without treating it as empty.
+Comparisons use declared comparison columns where available, otherwise exact
+exported columns. Duplicate row counts are preserved; source/configuration columns
+are fingerprinted. Equal selected values do not establish whole-org parity.
 
 ## Browser field-access checker
 
@@ -38,7 +64,7 @@ A probe captures the question once.
 
 ## Use
 
-[Download ZIP](https://github.com/ialameh/probekit/archive/refs/heads/main.zip) ·
+[Download ZIP](https://github.com/ialameh/probekit/releases/latest/download/probekit.zip) ·
 [Getting started](https://probekit.orgparity.com/getting-started.html)
 
 Extract the ZIP and open `docs/index.html` to browse offline. To start the local
@@ -52,13 +78,13 @@ commands and SOQL; running probes against an org still requires the local CLI.
 
 ### Publish the web library
 
-`npm run build:web` generates `dist/index.html` from the shipped probes only,
+`pnpm run build:web` generates `dist/index.html` from the shipped probes only,
 excluding project-specific probes and usage logs. Deploy `dist/` to the Cloudflare
 Pages project `probekit` (production branch `main`), which serves
 `probekit.orgparity.com`:
 
 ```sh
-npx wrangler pages deploy dist --project-name probekit --branch main
+pnpm dlx wrangler pages deploy dist --project-name probekit --branch main
 ```
 
 ### CLI commands
@@ -149,5 +175,5 @@ probekit finds `.probekit/config.json` by walking up from the current folder.
 ## Test
 
 ```
-npm test
+pnpm test
 ```

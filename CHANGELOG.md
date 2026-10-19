@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.3.0
+
+- Added a browser investigation workspace covering all 61 catalogue probes.
+- Added dependent query steps, validated imports, scoped evidence summaries and fictional samples.
+- Added two-export comparisons with duplicate counts and source fingerprints.
+- Added text and JSON summary reports and a local preview command.
+- Added catalogue-wide workflow tests and investigation-specific guidance.
+
 ## 0.2.0
 
 - Added a free browser-based field-access checker with three read-only query steps.

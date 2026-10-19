@@ -5,8 +5,8 @@
 //   probe run <id> --org dev[,uat] [--ticket PROJ-1234] [--<param> value ...]
 //   probe docs --out <dir>
 
-import { writeFileSync, mkdirSync, readFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { writeFileSync, mkdirSync, readFileSync, readdirSync } from 'node:fs';
+import { join, extname } from 'node:path';
 import { createServer } from 'node:http';
 import {
   findProject, loadProbes, checkParams, safetyCheck, runProbe, logUsage, readUsage, TOOL_DIR,
@@ -157,12 +157,30 @@ function webPage(project) {
 function cmdWeb(project, flags) {
   if (flags.serve) {
     const port = Number(flags.port) || 4791;
+    const assets = new Set(readdirSync(join(TOOL_DIR, 'web')).filter(name => !name.startsWith('_') && !name.endsWith('.test.mjs')));
+    const types = { '.html': 'text/html; charset=utf-8', '.mjs': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.txt': 'text/plain; charset=utf-8', '.xml': 'application/xml' };
     createServer((req, res) => {
       try {
+        if (!['GET', 'HEAD'].includes(req.method)) { res.writeHead(405); res.end(); return; }
+        const path = new URL(req.url, 'http://localhost').pathname;
+        if (path !== '/' && path !== '/index.html') {
+          let name = path.slice(1);
+          if (!extname(name)) name += '.html';
+          let content;
+          if (name === 'investigation-catalogue.mjs') {
+            const catalogue = [...loadProbes(null).values()].map(({ id, question, family, params, safety, steps, traps }) => ({ id, question, family, params, safety, steps, traps }));
+            content = 'export default ' + JSON.stringify(catalogue).replace(/</g, '\\u003c') + ';';
+          } else if (name === 'getting-started.html') content = readFileSync(join(TOOL_DIR, 'docs', name));
+          else if (assets.has(name)) content = readFileSync(join(TOOL_DIR, 'web', name));
+          else { res.writeHead(404, { 'content-type': 'text/plain' }); res.end('Not found'); return; }
+          const headers = { 'content-type': types[extname(name)] ?? 'application/octet-stream', 'cache-control': 'no-store', 'x-content-type-options': 'nosniff' };
+          if (['investigations.html', 'field-access.html'].includes(name)) headers['content-security-policy'] = "default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'none'; img-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'";
+          res.writeHead(200, headers); res.end(req.method === 'HEAD' ? undefined : content); return;
+        }
         // Rebuilt on every load, so edits to probe files show on refresh.
         const html = webPage(findProject() ?? project);
         res.writeHead(200, { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store' });
-        res.end(html);
+        res.end(req.method === 'HEAD' ? undefined : html);
       } catch (e) {
         res.writeHead(500, { 'content-type': 'text/plain' });
         res.end(String(e.message));

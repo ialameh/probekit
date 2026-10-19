@@ -15,9 +15,10 @@ section { margin: 36px 0; }
 </style>
 </head>
 <body>
-<nav aria-label="Resources"><a href="/">Probe library</a><a href="https://github.com/ialameh/probekit">GitHub repository</a><a href="https://github.com/ialameh/probekit/archive/refs/heads/main.zip">Download ZIP</a></nav>
+<nav aria-label="Resources"><a href="/">Probe library</a><a href="https://github.com/ialameh/probekit">GitHub repository</a><a href="https://github.com/ialameh/probekit/releases/latest/download/probekit.zip">Download ZIP</a></nav>
 <main>
 <h1>Get started with ProbeKit</h1>
+<section><h2>Choose from 61 guided investigations</h2><p>Open the <a href="/investigations.html">investigation workspace</a> to explore access, metadata, flows, OmniStudio, operations and data. Each investigation supplies typed parameters, API guidance and sequential query steps. Paste or select JSON/CSV exports, review observations and limits, and download a text or JSON summary. Enable comparison to inspect two sets of exports side by side. Every investigation includes fictional sample results.</p><p>For a local workspace, install Node.js 20+ and <a href="https://pnpm.io/installation">pnpm</a>, then run <code>pnpm run preview:web</code> from the extracted project and open <code>http://127.0.0.1:4794/investigations.html</code>. The preview server does not publish or connect to Salesforce.</p></section>
 <p>A free Salesforce tool by <a href="https://orgparity.com">OrgParity</a>.</p>
 <section><h2>Investigate field access without installing anything</h2><p>Open the <a href="https://probekit.orgparity.com/field-access.html">field-access checker</a>. Enter an object, field and username, then run the supplied queries in an approved Salesforce query tool. Paste complete JSON or CSV results to see matching permission grants and next checks. Analysis stays in your browser tab. Try the fictional sample to explore the workflow, or download a text findings report.</p></section>
 <p>Browse reusable Salesforce queries, preview their SOQL, and run probes from your computer.</p>
@@ -25,7 +26,7 @@ section { margin: 36px 0; }
 <p>Open the <a href="/">probe library</a>, search for an object or question, and select a probe. Fill in its parameters to preview the command and SOQL. Copy the result using the copy buttons.</p>
 <p>No installation is needed to browse. The website does not connect to your Salesforce org or execute queries.</p></section>
 <section><h2>Download and open locally</h2>
-<ol><li><a href="https://github.com/ialameh/probekit/archive/refs/heads/main.zip">Download the ZIP</a> and extract it.</li>
+<ol><li><a href="https://github.com/ialameh/probekit/releases/latest/download/probekit.zip">Download the ZIP</a> and extract it.</li>
 <li>For an offline library, open <code>docs/index.html</code> in your browser.</li>
 <li>For the CLI or local server, install <a href="https://nodejs.org/en/download">Node.js</a> version 20 or newer. No project dependencies need installing.</li></ol>
 <p>On Windows, open the extracted folder in File Explorer, type <code>cmd</code> in the address bar and press Enter. On macOS or Linux, open a terminal in that folder.</p>
@@ -46,7 +47,7 @@ section { margin: 36px 0; }
 node probe.mjs show access.field-grants
 node probe.mjs run access.field-grants --org dev --obj Account --field Industry</code></pre>
 <p>Add <code>--soql</code> to print the queries. Results appear in the terminal; run history is saved in <code>.probekit/usage/</code>.</p>
-<p>The browser previews commands beginning with <code>probe</code>. Use <code>node probe.mjs</code> in its place when running from the extracted folder, or run <code>npm link</code> once to install the <code>probe</code> command.</p>
+<p>The browser previews commands beginning with <code>probe</code>. Use <code>node probe.mjs</code> in its place when running from the extracted folder, or run <code>pnpm link --global</code> once to install the <code>probe</code> command.</p>
 <p>See the <a href="https://github.com/ialameh/probekit#readme">README</a> for multiple-org comparisons, project probes, and production configuration.</p></section>
 </main>
 </body>

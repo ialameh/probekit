@@ -14,7 +14,7 @@ export function queries({object, field, username}) {
     assignments: `SELECT AssigneeId, PermissionSetId, PermissionSetGroupId FROM PermissionSetAssignment WHERE Assignee.Username = '${username}' ORDER BY PermissionSetId`
   };
 }
-function csv(text) {
+export function parseCSV(text) {
   const rows = []; let row = [], cell = '', quoted = false, closed = false;
   for (let i = 0; i < text.length; i++) {
     const c = text[i];
@@ -67,7 +67,7 @@ export function parseResults(text, kind) {
     records = Array.isArray(data) ? data : data.records;
     if (!Array.isArray(records)) throw Error('Expected a JSON records array, REST query response, or CLI JSON result.');
     if (data.totalSize !== undefined && Number(data.totalSize) !== records.length) throw Error('The reported total differs from the supplied rows. Export all results.');
-  } else ({records, headers} = csv(text));
+  } else ({records, headers} = parseCSV(text));
   if (records.length > 10000) throw Error('Use at most 10,000 rows per result.');
   if (headers && columns[kind].some(k => !headers.includes(k))) throw Error(`Use the supplied query. Required columns: ${columns[kind].join(', ')}.`);
   for (const row of records) {
