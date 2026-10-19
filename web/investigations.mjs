@@ -9,6 +9,8 @@ const link=(text,href)=>{const e=node('a',text);e.href=href;return e;};
 let probe=null,runs=[],isSample=false,epoch=0;
 const draft=()=>Object.fromEntries(Object.entries(probe.params).map(([k,s])=>[k,s.default??'']));
 const makeRun=i=>({label:`Result ${i===0?'A':'B'}`,draft:draft(),params:null,imported:Object.create(null),version:0});
+function reportHref(){const u=new URL('https://github.com/ialameh/probekit/issues/new');u.searchParams.set('template','bug.yml');if(probe)u.searchParams.set('title','[Bug] '+probe.id);return u.href;}
+function showError(element,message){element.textContent=message+' ';element.append(link('Report a problem',reportHref()),document.createTextNode(' (public form; use fictional examples).'));}
 function announce(text){$('#status').textContent=text;}
 function clearData(){epoch++;isSample=false;runs=[makeRun(0),makeRun(1)];$('#sample-notice').hidden=true;$('#notes').value='';renderRuns();renderSummary();}
 function route(){
@@ -17,6 +19,7 @@ function route(){
  if(!probe){runs=[];$('#workspace').hidden=true;$('#run-panels').replaceChildren();for(const id of ['findings','differences','related','traps'])$('#'+id).replaceChildren();$('#notes').value='';document.title='Salesforce investigations · ProbeKit by OrgParity';renderCatalogue();return;}
  const info=guidance(probe);$('#title').textContent=info.title;$('#question').textContent=probe.question;$('#family-label').textContent=info.family.title;$('#guidance').textContent=info.next;
  document.title=`${info.title} · ProbeKit by OrgParity`;
+ $('#workspace [data-report]').href=reportHref();
  $('#compare-mode').checked=false;clearData();window.scrollTo(0,0);
 }
 function renderCatalogue(){
@@ -52,7 +55,7 @@ function renderRun(index){
  }
  form.append(grid);const actions=node('div',undefined,'actions');const build=node('button','Build query steps');build.type='submit';actions.append(build);form.append(actions);
  const error=node('p','','error');error.setAttribute('role','alert');form.append(error);
- form.onsubmit=e=>{e.preventDefault();try{run.params=parameters(probe,run.draft);run.imported=Object.create(null);run.version++;error.textContent='';renderStepList(index);renderSummary();announce('Query steps built.');}catch(e){error.textContent=e.message;}};
+ form.onsubmit=e=>{e.preventDefault();try{run.params=parameters(probe,run.draft);run.imported=Object.create(null);run.version++;error.textContent='';renderStepList(index);renderSummary();announce('Query steps built.');}catch(e){showError(error,e.message);}};
  panel.append(form);const list=node('div',undefined,'step-list');panel.append(list);renderStepList(index);
 }
 function resultTable(result){
@@ -86,14 +89,14 @@ function renderStepList(index){
     if(!confirm.checked){error.textContent='Confirm the query and completeness before accepting the result.';return;}
     const ticket=revision,version=run.version,routeEpoch=epoch;accept.disabled=true;error.textContent='';
     try{const result=await importResult(area.value,step,step.query);if(ticket!==revision||version!==run.version||routeEpoch!==epoch)return;invalidateFrom(run,step.name);run.imported[step.name]=result;renderStepList(index);renderSummary();announce(`${step.name}: ${result.records.length} rows accepted.`);}
-    catch(e){if(ticket===revision&&version===run.version&&routeEpoch===epoch)error.textContent=e.message;}
+    catch(e){if(ticket===revision&&version===run.version&&routeEpoch===epoch)showError(error,e.message);}
     finally{accept.disabled=false;}
    },'');
    area.oninput=()=>{revision++;confirm.checked=false;error.textContent='';};
    file.onchange=async()=>{
     const f=file.files[0];if(!f)return;const ticket=++revision,version=run.version,routeEpoch=epoch;area.value='';confirm.checked=false;error.textContent='';
     try{if(f.size>LIMITS.bytes)throw Error('Choose an export under 2 MB.');const text=await f.text();if(ticket===revision&&version===run.version&&routeEpoch===epoch)area.value=text;}
-    catch(e){if(ticket===revision&&routeEpoch===epoch)error.textContent=e.message;}
+    catch(e){if(ticket===revision&&routeEpoch===epoch)showError(error,e.message);}
    };
    const actions=node('div',undefined,'actions');actions.append(accept,btn('Result unavailable',()=>{invalidateFrom(run,step.name);run.imported[step.name]={state:'unavailable',query:step.query,reason:'Marked unavailable by the user. No result or absence conclusion is recorded.'};renderStepList(index);renderSummary();}));section.append(actions,error,node('p','Up to 2 MB / 10,000 rows per export. Later imports on this side are cleared if this result changes.','small'));
   }

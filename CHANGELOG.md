@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.5.1
+
+- Added separate problem-report and probe-request links throughout the web tools.
+- Added contextual problem links beside investigation results and import errors.
+- Report links include only the shipped investigation ID, never parameters or exports.
+- Updated the field-access checker download to the versioned release archive.
+
 ## 0.5.0
 
 - Added a starting guide and five-minute fictional comparison walkthrough.
