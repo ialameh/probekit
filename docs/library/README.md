@@ -1,15 +1,21 @@
 # Probe library
 
-61 probes.
+73 probes.
 
 | Probe | Question | Writes | Runs logged |
 |---|---|---|---|
 | [access.apex-class-access](access.apex-class-access.md) | Which profiles and permission sets may run this Apex class? | no | 0 |
 | [access.custom-permission](access.custom-permission.md) | Which permission sets grant this custom permission, and who holds them? | no | 0 |
+| [access.dormant-users](access.dormant-users.md) | Which active users have no recorded login or last logged in before the selected window? | no | 0 |
+| [access.expiring-assignments](access.expiring-assignments.md) | Which active users have expiring, inactive or revoked permission assignments? | no | 0 |
 | [access.field-grants](access.field-grants.md) | Who can read and edit this field, and is that access assigned to the user? | no | 0 |
+| [access.frozen-users](access.frozen-users.md) | Which user logins are frozen, and which returned users are still active? | no | 0 |
+| [access.group-health](access.group-health.md) | Which permission-set groups have not reached Updated status? | no | 0 |
 | [access.group-members](access.group-members.md) | Who is in this public group or queue, and which objects does the queue serve? | no | 0 |
+| [access.license-capacity](access.license-capacity.md) | What user licence allocations and usage are reported by this org? | no | 0 |
 | [access.logins](access.logins.md) | When and how did this user last log in? | no | 0 |
 | [access.object-grants](access.object-grants.md) | Which profiles and permission sets grant access to this object, and at what level? | no | 0 |
+| [access.permission-license-capacity](access.permission-license-capacity.md) | What permission-set licence allocations, usage and expiry dates are reported? | no | 0 |
 | [access.permset](access.permset.md) | What is this permission set: licence, type, key system permissions, and how much does it grant? | no | 0 |
 | [access.permset-group](access.permset-group.md) | What is inside this permission set group, and has it finished recalculating? | no | 0 |
 | [access.permset-holders](access.permset-holders.md) | Who holds this permission set or permission set group? | no | 0 |
@@ -23,8 +29,11 @@
 | [data.files](data.files.md) | Which files are attached to this record, and who can see them? | no | 0 |
 | [data.find](data.find.md) | Which records of this object have this value in this field? | no | 0 |
 | [data.history](data.history.md) | How did the tracked fields of this record change over time? | no | 0 |
+| [data.inactive-owners](data.inactive-owners.md) | Which records on this object belong to inactive users? | no | 0 |
+| [data.missing-values](data.missing-values.md) | Which records lack a value in the selected field? | no | 0 |
 | [data.recent](data.recent.md) | Which records of this object changed recently, and who changed them? | no | 0 |
 | [data.record](data.record.md) | What does this one record hold right now? | no | 0 |
+| [data.stale-records](data.stale-records.md) | Which records have not been modified since before the selected window? | no | 0 |
 | [flow.interviews](flow.interviews.md) | Which flow interviews are paused or waiting on this org? | no | 0 |
 | [flow.on-object](flow.on-object.md) | Which flows fire on this object or event? | no | 0 |
 | [flow.versions](flow.versions.md) | Which version of this flow is active, which is latest, and who changed each? | no | 0 |
@@ -57,11 +66,14 @@
 | [omni.elements](omni.elements.md) | What steps does the active version of this OmniScript or Integration Procedure run? | no | 0 |
 | [omni.expression-set](omni.expression-set.md) | Which versions of this expression set exist, and which is active? | no | 0 |
 | [omni.flexcard](omni.flexcard.md) | Which version of this FlexCard is active, and who changed each version? | no | 0 |
+| [ops.approval-history](ops.approval-history.md) | What approval instances and completed steps are recorded for this record? | no | 0 |
 | [ops.async-jobs](ops.async-jobs.md) | Which async Apex jobs ran recently, and did they fail? | no | 0 |
 | [ops.code-coverage](ops.code-coverage.md) | How much of this class or trigger do tests cover? | no | 0 |
 | [ops.debug-logging](ops.debug-logging.md) | Is debug logging on for this user, and what are their latest logs? | no | 0 |
 | [ops.deploys](ops.deploys.md) | Which deployments ran recently, and how did they end? | no | 0 |
 | [ops.event-subscribers](ops.event-subscribers.md) | Are the subscribers to this platform event keeping up, and who do they run as? | no | 0 |
+| [ops.pending-approvals](ops.pending-approvals.md) | Which pending approval requests are older than the selected age? | no | 0 |
 | [ops.scheduled-jobs](ops.scheduled-jobs.md) | Which scheduled jobs exist, who owns them, and when do they fire next? | no | 0 |
 | [ops.setup-audit](ops.setup-audit.md) | What changed in Setup recently, and who changed it? | no | 0 |
+| [ops.test-queue](ops.test-queue.md) | Which Apex test queue items are waiting or processing? | no | 0 |
 | [ops.test-results](ops.test-results.md) | How did the latest test runs of this class go? | no | 0 |

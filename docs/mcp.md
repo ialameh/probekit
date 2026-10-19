@@ -52,14 +52,21 @@ not display an interactive prompt.
 | Tool | Inputs | Result |
 |---|---|---|
 | `search_investigations` | Optional `query`, `family`, `limit` | Matching IDs, questions and step counts |
+| `get_investigation_bundle` | Optional `id` | Six task bundles, or one bundle with ordered investigations |
+| `get_investigation_example` | `id`, optional `variant` (`A` or `B`) | Fictional inputs ready for export analysis |
 | `describe_investigation` | `id` | Parameters, API requirements, query templates and limitations |
 | `build_query_plan` | `id`, `parameters`, optional `exports` | Generated queries and ready/waiting/skipped step states |
 | `analyse_exports` | `id`, `parameters`, `exports` | Validated counts, scoped findings and text report |
 | `compare_exports` | `id`, runs `a` and `b`, optional `includeValues` | Selected-column differences and duplicate counts |
 
-The server loads the 61 shipped investigations. It does not read project configuration,
+The server loads the 73 shipped investigations. It does not read project configuration,
 load custom probes, accept file paths, execute queries, authenticate to an org, or write
 reports to disk. Tool inputs and results are not persisted by the server.
+
+Search ranks matching titles, IDs, questions and query terms, with common synonyms.
+Bundle calls suggest checks; they do not run them. Example calls return `analysisInput`
+with `sample: true`. Preserve this flag when analysing or comparing examples so reports
+retain their fictional-data label. The server reports the shared ProbeKit release version.
 
 ## Example workflow
 

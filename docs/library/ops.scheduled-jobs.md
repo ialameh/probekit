@@ -21,7 +21,7 @@ probe run ops.scheduled-jobs --org <org>
 ### jobs
 
 ```sql
-SELECT CronJobDetail.Name, CronJobDetail.JobType, State, CronExpression, NextFireTime, PreviousFireTime, CreatedBy.Name FROM CronTrigger WHERE CronJobDetail.Name LIKE '{name}' ORDER BY CronJobDetail.Name LIMIT 500
+SELECT CronJobDetail.Name, CronJobDetail.JobType, State, CronExpression, NextFireTime, PreviousFireTime, TimesTriggered, CreatedBy.Name FROM CronTrigger WHERE CronJobDetail.Name LIKE '{name}' ORDER BY CronJobDetail.Name LIMIT 500
 ```
 
 ## Verdicts

@@ -7,6 +7,19 @@ export const FAMILIES = {
  data:{title:'Records & data quality',description:'Find records, changes, duplicates, related files and counts.',check:'Record visibility, sharing, retention and query filters limit the evidence. Confirm the business rule before changing data.'}
 };
 const entries = {
+ "access.expiring-assignments":["Assignment expiry and activity", "Review each assignment with its owner. Assignment flags and dates do not calculate effective access.", "access.user,access.permset-group"],
+ "ops.pending-approvals":["Aging approval requests", "Check the assigned approver, delegation and the business deadline before treating a pending request as stuck.", "ops.approval-history,access.user"],
+ "data.inactive-owners":["Records owned by inactive users", "Confirm the business owner and reassignment process. The query does not change ownership.", "access.user,data.record"],
+ "access.license-capacity":["User licence capacity", "Review low remaining allocations with the licence owner; confirm reporting freshness and special allocations before acting.", "access.permission-license-capacity,access.dormant-users"],
+ "access.dormant-users":["Active users needing activity review", "Separate never-recorded logins from older logins. Review integration and service accounts with their owners before changing access.", "access.logins,access.license-capacity"],
+ "data.missing-values":["Missing business values", "Confirm that the field is expected for these records before treating null values as defects.", "data.record,meta.field-exists"],
+ "access.frozen-users":["Frozen user logins", "Confirm whether each freeze was intentional. Frozen and inactive are different states; do not unfreeze automatically.", "access.user,access.logins"],
+ "access.group-health":["Permission-set group calculation", "Inspect the calculation status and recent changes. A transient state is not proof of broken access.", "access.permset-group,ops.setup-audit"],
+ "ops.test-queue":["Apex test queue", "Check queue age and status alongside test results. This probe does not enqueue, abort or rerun tests.", "ops.test-results,ops.async-jobs"],
+ "data.stale-records":["Records needing freshness review", "Review the business lifecycle before treating older records as stale. Related activity may not update the parent timestamp.", "data.history,data.record"],
+ "ops.approval-history":["Record approval history", "Read each process instance separately and check pending work items for unresolved requests.", "ops.pending-approvals,data.history"],
+ "access.permission-license-capacity":["Permission-set licence capacity", "Check allocation, assignment eligibility and expiry with the licence owner before changing user permissions.", "access.license-capacity,access.user"],
+
  'access.apex-class-access':['Apex class access','Confirm a unique class match, then review grants. Class access is separate from object, field and record access.','access.user,access.permset'],
  'access.custom-permission':['Custom permission holders','Review profile grants and group assignments separately. The holder query is bounded and filters active users.','access.permset,access.permset-group'],
  'access.field-grants':['Field permission grants','Use the dedicated field-access checker for user matching by ID. These rows alone do not establish effective field access.','access.object-grants,access.user,meta.field-exists'],
@@ -86,7 +99,7 @@ export function findings(probe,steps,now=new Date()) {
    const yes=rows.filter(r=>r[key]===true).length,no=rows.filter(r=>r[key]===false).length;
    add(key,`${yes} true, ${no} false, ${rows.length-yes-no} unknown in ${step.name}.`);
   }
-  for(const key of ['Status','State','Outcome','InterviewStatus'])if(step.columns.includes(key)&&rows.length){
+  for(const key of ['Status','State','Outcome','InterviewStatus','StepStatus'])if(step.columns.includes(key)&&rows.length){
    const counts=new Map();for(const row of rows){const v=String(row[key]??'Unknown');counts.set(v,(counts.get(v)??0)+1);}
    add(key,[...counts].slice(0,15).map(([k,v])=>`${k}: ${v}`).join('; ')+(counts.size>15?'; additional values omitted.':'.'));
   }
@@ -119,6 +132,27 @@ export function findings(probe,steps,now=new Date()) {
  if(['data.count-by','data.duplicates'].includes(probe.id)){
   const rows=records(probe.id==='data.count-by'?'counts':'dupes');
   add('Returned groups',`${rows.length} group(s), totalling ${rows.reduce((n,r)=>n+(r.n??0),0)} counted records across the returned groups. This is not necessarily the org-wide total.`);
+ }
+ if(['access.license-capacity','access.permission-license-capacity'].includes(probe.id)){
+  const rows=records('licenses'),normal=rows.filter(r=>Number.isFinite(r.TotalLicenses)&&r.TotalLicenses>0&&Number.isFinite(r.UsedLicenses)&&r.UsedLicenses>=0);
+  add('Allocation review',`${normal.filter(r=>r.UsedLicenses/r.TotalLicenses>=0.9).length} supplied allocation(s) are at least 90% used; ${normal.filter(r=>r.UsedLicenses>=r.TotalLicenses).length} are at or above their positive reported total. Confirm freshness and provisioning eligibility.`);
+  add('Special totals',`${rows.length-normal.length} supplied row(s) have zero, special or unknown totals/usage; no utilisation percentage is calculated for them.`,'Limit');
+ }
+ if(probe.id==='ops.pending-approvals'){
+  const ages=records('requests').map(r=>(now.getTime()-Date.parse(r.CreatedDate))/86400000).filter(n=>Number.isFinite(n)&&n>=0);
+  if(ages.length)add('Oldest supplied request',`${Math.floor(Math.max(...ages))} day(s) since creation as of ${now.toISOString()}. This is elapsed time, not proof of a missed deadline.`);
+ }
+ if(probe.id==='access.expiring-assignments'){
+  const rows=records('assignments');add('Assignment flags',`${rows.filter(r=>r.IsActive===false).length} supplied assignment(s) inactive; ${rows.filter(r=>r.IsRevoked===true).length} revoked. Categories can overlap.`);
+  add('Dated assignments',`${rows.filter(r=>r.ExpirationDate!==null).length} supplied assignment(s) have an expiration date. Check the displayed date window and other grants before assessing access loss.`);
+ }
+ if(probe.id==='access.dormant-users')add('Recorded login activity',`${records('users').filter(r=>r.LastLoginDate===null).length} supplied active-user row(s) have no recorded last login. Others have a supplied timestamp. Review service accounts and provisioning dates before acting.`);
+ if(probe.id==='data.inactive-owners')add('Ownership review',`${new Set(records('records').map(r=>r.OwnerId).filter(Boolean)).size} distinct owner ID(s) appear in the supplied records. Confirm the intended replacement owner before reassignment.`);
+ if(probe.id==='ops.scheduled-jobs'){
+  const rows=records('jobs');add('Schedule review',`${rows.filter(r=>['ERROR','BLOCKED','PAUSED','PAUSED_BLOCKED'].includes(r.State)).length} supplied job(s) have a state needing review; ${rows.filter(r=>r.NextFireTime===null).length} have no next fire time. Neither proves an unexpected failure.`);
+ }
+ if(probe.id==='access.logins'){
+  const rows=records('logins');add('Login outcomes',`${rows.filter(r=>r.Status!==null&&r.Status!=='Success').length} supplied login row(s) have a non-success status; ${rows.filter(r=>r.Status===null).length} unknown. This is a summary of the exported window, not all attempts.`);
  }
  add('Next check',guidance(probe).next,'Action');
  add('Scope',FAMILIES[probe.family].check,'Limit');

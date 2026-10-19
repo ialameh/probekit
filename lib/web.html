@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ProbeKit · Free Salesforce tools by OrgParity</title>
-<meta name="description" content="Free Salesforce tools from OrgParity. Investigate field access in your browser and browse 61 reusable probes for metadata, permissions, flows and data.">
+<meta name="description" content="Free Salesforce tools from OrgParity. Investigate field access in your browser and browse __PROBEKIT_COUNT__ reusable probes for metadata, permissions, flows and data.">
 <link rel="canonical" href="https://probekit.orgparity.com/">
 <style>
 :root {
@@ -105,11 +105,13 @@ mark { background: var(--warn-soft); color: inherit; border-radius: 2px; }
   #detail { padding: 16px; }
   header .count { display: none; }
 }
+.release-version{font:600 12px var(--sans);border:1px solid var(--line);border-radius:4px;padding:3px 7px;white-space:nowrap}
 </style>
 </head>
 <body>
 <header>
   <h1>ProbeKit <span class="brand-note">A free tool by <a href="https://orgparity.com">OrgParity</a></span></h1>
+  <a class="release-version" href="https://github.com/ialameh/probekit/releases/tag/v__PROBEKIT_VERSION__" aria-label="Release __PROBEKIT_VERSION__">v__PROBEKIT_VERSION__</a>
   <span class="count" id="count"></span>
   <span class="spacer"></span>
   <nav aria-label="Resources">
@@ -123,7 +125,7 @@ mark { background: var(--warn-soft); color: inherit; border-radius: 2px; }
   </nav>
   <button class="iconbtn" id="theme" title="Switch light or dark">Theme</button>
 </header>
-<div class="start-here"><strong>No installation needed.</strong> <a href="https://probekit.orgparity.com/investigations.html">Explore 61 guided investigations</a> with query steps, local result analysis, comparisons and downloadable reports.</div>
+<div class="start-here"><strong>No installation needed.</strong> <a href="https://probekit.orgparity.com/investigations.html">Explore __PROBEKIT_COUNT__ guided investigations</a> with query steps, local result analysis, comparisons and downloadable reports.</div>
 <main>
   <aside id="side">
     <div class="search"><input id="q" type="search" placeholder="Search: object, field, question, trap... ( / )" autocomplete="off"></div>

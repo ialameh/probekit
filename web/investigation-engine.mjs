@@ -72,7 +72,7 @@ function read(row, key) {
   return {exists:true,value:obj};
 }
 const BOOL = /^(Is[A-Z]|Has[A-Z]|Permissions[A-Z]|Usage[A-Z])|^(Active|Incoming|CheckOnly)$/;
-const NUM = /^(NumLinesCovered|NumLinesUncovered|NumberOfErrors|JobItemsProcessed|TotalJobItems|NumberComponentsDeployed|NumberComponentErrors|NumberTestsCompleted|NumberTestErrors|Retries|Position|Tip|Rank|Level|SequenceNumber|VersionNumber|MajorVersion|MinorVersion|PatchVersion|Length|BodyLength|LengthWithoutComments|ContentSize|LogLength|DurationMilliseconds|RunTime|BatchSize|ApiVersion)$/;
+const NUM = /^(ElapsedTimeInDays|ElapsedTimeInHours|ElapsedTimeInMinutes|TotalLicenses|UsedLicenses|TimesTriggered|NumLinesCovered|NumLinesUncovered|NumberOfErrors|JobItemsProcessed|TotalJobItems|NumberComponentsDeployed|NumberComponentErrors|NumberTestsCompleted|NumberTestErrors|Retries|Position|Tip|Rank|Level|SequenceNumber|VersionNumber|MajorVersion|MinorVersion|PatchVersion|Length|BodyLength|LengthWithoutComments|ContentSize|LogLength|DurationMilliseconds|RunTime|BatchSize|ApiVersion)$/;
 function normalise(v, column) {
   if(v === null) return null;
   const name=column.key.split('.').at(-1);

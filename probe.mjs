@@ -7,6 +7,7 @@
 
 import { writeFileSync, mkdirSync, readFileSync, readdirSync } from 'node:fs';
 import { join, extname } from 'node:path';
+import {stampRelease} from './lib/release.mjs';
 import { createServer } from 'node:http';
 import {
   findProject, loadProbes, checkParams, safetyCheck, runProbe, logUsage, readUsage, TOOL_DIR,
@@ -151,7 +152,7 @@ function webPage(project) {
   const probes = loadProbes(project);
   const data = [...probes.values()].map(({ file, ...p }) => ({ ...p, logged: project ? readUsage(project, p).length : 0 }));
   const json = JSON.stringify(data).replace(/</g, '\\u003c');
-  return readFileSync(join(TOOL_DIR, 'lib', 'web.html'), 'utf8').replace('/*PROBES*/', () => json);
+  return stampRelease(readFileSync(join(TOOL_DIR, 'lib', 'web.html'), 'utf8').replace('/*PROBES*/', () => json),data.length);
 }
 
 function cmdWeb(project, flags) {
@@ -173,6 +174,7 @@ function cmdWeb(project, flags) {
           } else if (name === 'getting-started.html') content = readFileSync(join(TOOL_DIR, 'docs', name));
           else if (assets.has(name)) content = readFileSync(join(TOOL_DIR, 'web', name));
           else { res.writeHead(404, { 'content-type': 'text/plain' }); res.end('Not found'); return; }
+          if(name.endsWith('.html'))content=stampRelease(String(content),loadProbes(null).size);
           const headers = { 'content-type': types[extname(name)] ?? 'application/octet-stream', 'cache-control': 'no-store', 'x-content-type-options': 'nosniff' };
           if (['investigations.html', 'field-access.html'].includes(name)) headers['content-security-policy'] = "default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'none'; img-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'";
           res.writeHead(200, headers); res.end(req.method === 'HEAD' ? undefined : content); return;

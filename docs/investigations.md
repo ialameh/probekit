@@ -1,6 +1,8 @@
 # Browser investigations
 
-The workspace covers all 61 probes in the current catalogue. It does not claim to cover every possible Salesforce investigation.
+The workspace covers all 73 probes in the current catalogue. It does not claim to cover every possible Salesforce investigation.
+
+Browse six family sections, filter by family, or search across titles, questions and query terms. Six expandable task bundles suggest checks for access, jobs and approvals, licence capacity, record quality, release differences and OmniStudio. Each investigation still needs its own parameters and exports; bundles do not execute queries or transfer results between investigations. The same bundles are available through MCP.
 
 ## Local preview
 

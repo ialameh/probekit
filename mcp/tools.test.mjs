@@ -2,7 +2,7 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {loadProbes} from '../lib/engine.mjs';
 import {sampleParameters,sampleRows} from '../web/investigation-samples.mjs';
-import {searchInvestigations,describeInvestigation,buildPlan,analyseExports,compareExports} from './tools.mjs';
+import {searchInvestigations,describeInvestigation,buildPlan,analyseExports,compareExports,investigationBundles,investigationExample,catalogueCount} from './tools.mjs';
 async function fixture(p,variant='A'){
  const parameters=sampleParameters(p),exports={};
  for(const d of p.steps){const s=(await buildPlan({id:p.id,parameters,exports})).steps.find(s=>s.name===d.name);if(s.state==='ready')exports[s.name]={query:s.query,text:JSON.stringify(sampleRows({...d,query:s.query},parameters,variant))};}
@@ -12,7 +12,7 @@ for(const p of loadProbes(null).values())test(`${p.id}: MCP planning, analysis a
  const a=await fixture(p),b=await fixture(p,'B');const analysis=await analyseExports({id:p.id,...a});assert.ok(analysis.steps.every(s=>['complete','skipped'].includes(s.state)));assert.ok(analysis.findings.length);assert.match(analysis.report,/Investigation report/);assert.ok(analysis.steps.every(s=>!Object.hasOwn(s,'records')));
  const same=await compareExports({id:p.id,a,b:a});assert.ok(same.comparisons.every(c=>['same','unavailable'].includes(c.state)));const different=await compareExports({id:p.id,a,b});assert.ok(different.comparisons.every(c=>!Object.hasOwn(c,'onlyA')));
 });
-test('discovery is limited to shipped catalogue and rejects invalid filters',()=>{assert.equal(searchInvestigations({limit:61}).total,61);assert.equal(searchInvestigations({family:'flow'}).total,3);assert.ok(searchInvestigations({query:'permission'}).total);assert.throws(()=>describeInvestigation({id:'../private'}));assert.throws(()=>searchInvestigations({limit:1000}));});
+test('discovery is limited to shipped catalogue and rejects invalid filters',()=>{assert.equal(searchInvestigations({limit:catalogueCount}).total,catalogueCount);assert.equal(searchInvestigations({family:'flow'}).total,3);assert.ok(searchInvestigations({query:'permission'}).total);assert.throws(()=>describeInvestigation({id:'../private'}));assert.throws(()=>searchInvestigations({limit:1000}));});
 test('untrusted exports cannot skip prerequisites, change queries or add steps',async()=>{
  const id='access.custom-permission',parameters={name:'Example'};const first=(await buildPlan({id,parameters})).steps[0];
  await assert.rejects(buildPlan({id,parameters:{...parameters,extra:'value'}}),/Unknown parameter/);
@@ -31,4 +31,24 @@ test('comparison values are opt-in, bounded and preserve multiplicities',async()
 test('empty exports skip dependencies and source columns become fingerprints',async()=>{
  const p=loadProbes(null).get('meta.apex-class'),a=await fixture(p),b=await fixture(p,'B');const r=await compareExports({id:p.id,a,b,includeValues:true});assert.match(JSON.stringify(r),/sha256:/);assert.doesNotMatch(JSON.stringify(r),/Example content/);
  const id='access.custom-permission',parameters={name:'Example'},query=(await buildPlan({id,parameters})).steps[0].query;const result=await analyseExports({id,parameters,exports:{perm:{query,text:'[]'}}});assert.equal(result.steps[1].state,'skipped');assert.match(result.steps[0].warnings[0],/do not prove absence/);
+});
+
+test('workflow bundles reference only valid probes and describe their scope',()=>{
+ const groups=investigationBundles().bundles;assert.equal(groups.length,6);
+ for(const group of groups){assert.ok(group.probes.length>=3);for(const p of group.probes)assert.equal(describeInvestigation({id:p.id}).id,p.id);assert.equal(investigationBundles({id:group.id}).bundles.length,1);}
+ assert.throws(()=>investigationBundles({id:'unknown'}));
+});
+test('plain-language search ranks meaningful matches and accepts exact IDs',()=>{
+ assert.equal(searchInvestigations({query:'seats'}).investigations[0].family,'access');
+ assert.equal(searchInvestigations({query:'ops.pending-approvals'}).investigations[0].id,'ops.pending-approvals');
+ assert.ok(searchInvestigations({query:"user can't see a field",limit:5}).investigations.some(p=>p.id==='access.field-grants'));
+ assert.equal(searchInvestigations({query:'zzzznomatch'}).total,0);
+});
+test('every example replays with fictional labelling through analysis and comparison',async()=>{
+ for(const p of loadProbes(null).values()){
+  const a=await investigationExample({id:p.id}),b=await investigationExample({id:p.id,variant:'B'});
+  assert.equal(a.sample,true);const analysed=await analyseExports(a.analysisInput);assert.equal(analysed.sample,true);assert.match(analysed.report,/FICTIONAL SAMPLE/);
+  const {id:_,...runA}=a.analysisInput,{id:__,...runB}=b.analysisInput;
+  assert.equal((await compareExports({id:p.id,a:runA,b:runB})).sample,true);
+ }
 });

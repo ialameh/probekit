@@ -1,3 +1,4 @@
+import {bundles,searchCatalogue} from './investigation-discovery.mjs';
 import catalogue from './investigation-catalogue.mjs';
 import {parameters,plan,importResult,compareResults,reportText,LIMITS} from './investigation-engine.mjs';
 import {FAMILIES,guidance,findings} from './investigation-guidance.mjs';
@@ -23,12 +24,15 @@ function route(){
  $('#compare-mode').checked=false;clearData();window.scrollTo(0,0);
 }
 function renderCatalogue(){
- const q=$('#search').value.toLowerCase().trim().split(/\s+/).filter(Boolean),family=$('#family').value;
- const rows=catalogue.filter(p=>(!family||p.family===family)&&q.every(t=>(p.id+' '+p.question+' '+guidance(p).title+' '+p.steps.map(s=>s.soql).join(' ')).toLowerCase().includes(t)));
+ const rows=searchCatalogue(catalogue,$('#search').value,$('#family').value).map(r=>r.probe);
  $('#cards').replaceChildren();$('#catalogue-count').textContent=`${rows.length} of ${catalogue.length} investigations`;
- for(const p of rows){const a=link('',`#${p.id}`);a.className='investigation-card';a.append(node('span',FAMILIES[p.family].title,'eyebrow'),node('h2',guidance(p).title),node('p',p.question),node('span',`${p.steps.length} query step${p.steps.length===1?'':'s'}${p.steps.some(s=>s.tooling)?' · Includes Tooling API':''}`,'small'));$('#cards').append(a);}
+ const grouped=!$('#search').value.trim();
+ const groups=grouped?Object.entries(FAMILIES).map(([family,f])=>({title:f.title,description:f.description,rows:rows.filter(p=>p.family===family)})).filter(g=>g.rows.length):[{title:'Search results',rows}];
+ for(const group of groups){const section=node('section',undefined,'family-group');section.append(node('h2',`${group.title} · ${group.rows.length}`));if(group.description)section.append(node('p',group.description,'small'));const grid=node('div',undefined,'investigation-grid');
+  for(const p of group.rows){const a=link('',`#${p.id}`);a.className='investigation-card';a.append(node('span',FAMILIES[p.family].title,'eyebrow'),node('h3',guidance(p).title),node('p',p.question),node('span',`${p.steps.length} query step${p.steps.length===1?'':'s'}${p.steps.some(s=>s.tooling)?' · Includes Tooling API':''}`,'small'));grid.append(a);}section.append(grid);$('#cards').append(section);}
  $('#empty').hidden=rows.length!==0;
 }
+for(const bundle of bundles){const card=node('details');card.append(node('summary',bundle.title),node('p',bundle.description));const list=node('ol');for(const id of bundle.probes){const p=catalogue.find(p=>p.id===id);if(p){const item=node('li');item.append(link(guidance(p).title,'#'+id));list.append(item);}}card.append(list);$('#bundles').append(card);}
 for(const [key,f] of Object.entries(FAMILIES)){const option=node('option',f.title);option.value=key;$('#family').append(option);}
 $('#search').oninput=renderCatalogue;$('#family').onchange=renderCatalogue;window.addEventListener('hashchange',route);
 function currentSteps(run){return run.params?plan(probe,run.params,run.imported):[];}

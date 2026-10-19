@@ -1,0 +1,35 @@
+{
+  "id": "access.dormant-users",
+  "question": "Which active users have no recorded login or last logged in before the selected window?",
+  "family": "access",
+  "params": {
+    "days": {
+      "type": "int",
+      "example": "90",
+      "default": "90"
+    },
+    "limit": {
+      "type": "int",
+      "example": "50",
+      "default": "50"
+    }
+  },
+  "safety": {
+    "writes": false
+  },
+  "steps": [
+    {
+      "name": "users",
+      "soql": "SELECT Id, Username, IsActive, UserType, LastLoginDate, CreatedDate FROM User WHERE IsActive = true AND (LastLoginDate = null OR LastLoginDate < LAST_N_DAYS:{days}) ORDER BY LastLoginDate ASC NULLS FIRST LIMIT {limit}"
+    }
+  ],
+  "verdicts": [
+    {
+      "say": "{users.rows} row(s) returned by the first query. Review selected columns, query limits and follow-up steps; this is not an org-wide assessment."
+    }
+  ],
+  "traps": [
+    "LastLoginDate is a limited activity signal, not proof a user is unused.",
+    "A null login date can include newly provisioned users. No automatic deactivation is recommended."
+  ]
+}

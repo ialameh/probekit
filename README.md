@@ -4,9 +4,11 @@ A free Salesforce investigation tool by [OrgParity](https://orgparity.com).
 
 [Start here](https://probekit.orgparity.com/start.html) · [Use online](https://probekit.orgparity.com/investigations.html) · [Download](https://github.com/ialameh/probekit/releases/latest/download/probekit.zip) · [Getting started](https://probekit.orgparity.com/getting-started.html) · [Release notes](CHANGELOG.md)
 
-Investigate access, metadata, flows, OmniStudio, operations and data with 61 guided workflows. Build read-only queries, analyse JSON/CSV exports, compare results and download findings. Browser analysis requires no installation or account.
+Investigate access, metadata, flows, OmniStudio, operations and data with 73 investigations. Build read-only queries, analyse JSON/CSV exports, compare results and download findings. Browser analysis requires no installation or account.
 
 ![ProbeKit investigation workspace](docs/images/workspace.png)
+
+Browse by six families or six task bundles: access, jobs and approvals, licence capacity, record quality, release differences and OmniStudio. Search also recognises common terms such as seats, stuck approvals and unused users.
 
 ## Investigation workspace
 
@@ -16,7 +18,7 @@ Use the [online workspace](https://probekit.orgparity.com/investigations.html), 
 pnpm run preview:web
 ```
 
-Open http://127.0.0.1:4794/investigations.html. All 61 catalogue investigations
+Open http://127.0.0.1:4794/investigations.html. All 73 catalogue investigations
 support typed parameters, dependent query steps, JSON/CSV imports, scoped evidence
 summaries, fictional samples, text/JSON reports and two-export comparison. The
 preview command serves local files only; it does not publish or connect to Salesforce.
@@ -51,7 +53,7 @@ A probe captures the question once.
 
 ## The library
 
-61 probes in six families. Browse them in [docs/library](docs/library/README.md).
+73 probes in six families. Browse them in [docs/library](docs/library/README.md).
 
 | Family | What it answers |
 |---|---|

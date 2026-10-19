@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.6.0
+
+- Expanded the catalogue to 73 investigations, adding assignment expiry, frozen and dormant users, permission-set group status, user and permission-set licence capacity, approvals, queued tests, inactive record owners, missing values and stale records.
+- Grouped browser browsing into six families and six task bundles, with ranked keyword and synonym search.
+- Added MCP bundle discovery and replayable fictional examples, bringing the server to seven tools.
+- Added scoped licence, approval-age, login-status and schedule findings and consistent numeric CSV handling.
+- Displayed the release version on web pages from shared package metadata.
+
 ## 0.5.1
 
 - Added separate problem-report and probe-request links throughout the web tools.

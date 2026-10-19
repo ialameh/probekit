@@ -67,3 +67,18 @@ test('mixed export formats are disclosed without masking differing values',async
  const s={name:'x'},q='SELECT Name FROM Account';const a=await importResult('[{"Name":"1"}]',s,q),b=await importResult('Name\n1',s,q);
  const c=compareResults(a,b,s);assert.equal(c.state,'same');assert.match(c.warnings[0],/Export formats differ/);
 });
+
+test('approval, licence and schedule numbers normalise across JSON and CSV',async()=>{
+ const q='SELECT ElapsedTimeInDays, TotalLicenses, UsedLicenses, TimesTriggered FROM Example';
+ const a=await importResult('[{"ElapsedTimeInDays":1.25,"TotalLicenses":100,"UsedLicenses":90,"TimesTriggered":2}]',{},q),b=await importResult('ElapsedTimeInDays,TotalLicenses,UsedLicenses,TimesTriggered\n1.25,100,90,2',{},q);
+ assert.equal(compareResults(a,b,{}).state,'same');
+});
+test('licence findings avoid division by zero and flag only known positive totals',()=>{
+ const p=probes.find(p=>p.id==='access.license-capacity');const rows=[{TotalLicenses:0,UsedLicenses:0},{TotalLicenses:-1,UsedLicenses:9},{TotalLicenses:null,UsedLicenses:1},{TotalLicenses:100,UsedLicenses:95}];
+ const f=findings(p,[{name:'licenses',state:'complete',columns:[],records:rows,warnings:[]}]);
+ assert.match(f.find(x=>x.title==='Allocation review').text,/1 supplied allocation/);assert.match(f.find(x=>x.title==='Special totals').text,/3 supplied row/);assert.doesNotMatch(JSON.stringify(f),/NaN|Infinity/);
+});
+test('pending age and review counts remain evidence-scoped',()=>{
+ const p=probes.find(p=>p.id==='ops.pending-approvals');const f=findings(p,[{name:'requests',state:'complete',columns:[],records:[{CreatedDate:'2026-01-01T00:00:00.000Z'}],warnings:[]}],new Date('2026-01-11T00:00:00.000Z'));
+ assert.match(f.find(x=>x.title==='Oldest supplied request').text,/10 day/);assert.match(f.find(x=>x.title==='Oldest supplied request').text,/not proof/);
+});

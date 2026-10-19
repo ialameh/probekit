@@ -1,0 +1,36 @@
+{
+  "id": "access.license-capacity",
+  "question": "What user licence allocations and usage are reported by this org?",
+  "family": "access",
+  "params": {
+    "limit": {
+      "type": "int",
+      "example": "100",
+      "default": "100"
+    }
+  },
+  "safety": {
+    "writes": false
+  },
+  "steps": [
+    {
+      "name": "licenses",
+      "soql": "SELECT Name, Status, TotalLicenses, UsedLicenses, UsedLicensesLastUpdated FROM UserLicense ORDER BY Name LIMIT {limit}",
+      "compare": [
+        "Name",
+        "Status",
+        "TotalLicenses",
+        "UsedLicenses"
+      ]
+    }
+  ],
+  "verdicts": [
+    {
+      "say": "{licenses.rows} row(s) returned by the first query. Review selected columns, query limits and follow-up steps; this is not an org-wide assessment."
+    }
+  ],
+  "traps": [
+    "Zero or special licence totals must not be used as a percentage denominator.",
+    "Usage is reported data, not a purchasing recommendation or proof that a user can be provisioned."
+  ]
+}

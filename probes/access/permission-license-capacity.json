@@ -1,0 +1,37 @@
+{
+  "id": "access.permission-license-capacity",
+  "question": "What permission-set licence allocations, usage and expiry dates are reported?",
+  "family": "access",
+  "params": {
+    "limit": {
+      "type": "int",
+      "example": "100",
+      "default": "100"
+    }
+  },
+  "safety": {
+    "writes": false
+  },
+  "steps": [
+    {
+      "name": "licenses",
+      "soql": "SELECT DeveloperName, MasterLabel, Status, TotalLicenses, UsedLicenses, ExpirationDate FROM PermissionSetLicense ORDER BY DeveloperName LIMIT {limit}",
+      "compare": [
+        "DeveloperName",
+        "Status",
+        "TotalLicenses",
+        "UsedLicenses",
+        "ExpirationDate"
+      ]
+    }
+  ],
+  "verdicts": [
+    {
+      "say": "{licenses.rows} row(s) returned by the first query. Review selected columns, query limits and follow-up steps; this is not an org-wide assessment."
+    }
+  ],
+  "traps": [
+    "Permission-set licences differ from user licences. Availability alone does not grant access.",
+    "Zero or special totals need separate interpretation; expiry is date-based."
+  ]
+}

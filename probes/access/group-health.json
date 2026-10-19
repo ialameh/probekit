@@ -1,0 +1,30 @@
+{
+  "id": "access.group-health",
+  "question": "Which permission-set groups have not reached Updated status?",
+  "family": "access",
+  "params": {
+    "limit": {
+      "type": "int",
+      "example": "50",
+      "default": "50"
+    }
+  },
+  "safety": {
+    "writes": false
+  },
+  "steps": [
+    {
+      "name": "groups",
+      "soql": "SELECT DeveloperName, MasterLabel, Status, LastModifiedDate FROM PermissionSetGroup WHERE Status != 'Updated' ORDER BY LastModifiedDate DESC LIMIT {limit}"
+    }
+  ],
+  "verdicts": [
+    {
+      "say": "{groups.rows} row(s) returned by the first query. Review selected columns, query limits and follow-up steps; this is not an org-wide assessment."
+    }
+  ],
+  "traps": [
+    "Status describes an export-time snapshot. Calculation may complete after the query.",
+    "Effective permissions also depend on muting, assignment and other grants."
+  ]
+}

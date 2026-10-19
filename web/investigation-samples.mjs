@@ -11,7 +11,7 @@ export function sampleRows(step,params,variant='A') {
   else if(/^(Is[A-Z]|Has[A-Z]|Permissions[A-Z]|Usage[A-Z])/.test(name)||['Active','Incoming','CheckOnly'].includes(name))val=!['IsFrozen','IsCustomSetting','CheckOnly','PermissionsModifyAllData','PermissionsViewAllData'].includes(name);
   else if(/^(Id|.*Id)$/.test(name))val='001000000000001';
   else if(name==='DurableId')val=params.obj??'Account';
-  else if(/Date|Timestamp|Time$/.test(name)&&name!=='RunTime')val=name==='ExpirationDate'?'2030-01-01T00:00:00.000Z':'2026-01-01T12:00:00.000Z';
+  else if((/Date|Timestamp|Time$/.test(name)||name==='UsedLicensesLastUpdated')&&name!=='RunTime')val=name==='ExpirationDate'?'2030-01-01T00:00:00.000Z':'2026-01-01T12:00:00.000Z';
   else if(/VersionNumber$/.test(name))val=variant==='B'?3:2;
   else if(name==='Status')val=({PermissionSetGroup:'Updated',EventBusSubscriber:'Running',Flow:variant==='B'?'Draft':'Active',ApexClass:'Active',ApexTrigger:'Active',LoginHistory:'Success',ApexLog:'Success',DeployRequest:variant==='B'?'Failed':'Succeeded'})[object]??(variant==='B'?'Failed':'Completed');
   else if(name==='State')val='WAITING';
@@ -22,6 +22,10 @@ export function sampleRows(step,params,variant='A') {
   else if(['Body','HtmlValue','Source','PropertySetConfig'].includes(name))val=variant==='B'?'Example content B':'Example content A';
   else if(name==='Name'||name==='DeveloperName'||name==='ApiName')val=params.name??params.permset??params.group??params.apexclass??'Example_Component';
   else if(name==='QualifiedApiName')val=params.field??params.obj??'Account';
+  else if(name==='TotalLicenses')val=100;
+  else if(name==='UsedLicenses')val=variant==='B'?95:75;
+  else if(['ElapsedTimeInDays','ElapsedTimeInHours','ElapsedTimeInMinutes','TimesTriggered'].includes(name))val=10;
+  else if(name==='StepStatus')val='Approved';
   else if(name==='NumLinesCovered')val=80;
   else if(name==='NumLinesUncovered')val=20;
   else if(/^(NumberOfErrors|NumberComponentErrors|NumberTestErrors|Retries)$/.test(name))val=variant==='B'?1:0;
@@ -30,6 +34,13 @@ export function sampleRows(step,params,variant='A') {
   else if(name==='SobjectType')val=params.obj??'Account';
   return [key,val];
  }));
+ if(object==='ProcessInstanceWorkitem')row['ProcessInstance.Status']='Pending';
+ if(object==='UserLicense'||object==='PermissionSetLicense')row.Status='Active';
+ if(object==='ApexTestQueueItem')row.Status='Queued';
+ if(object==='PermissionSetGroup'&&/Status !=/.test(step.query))row.Status='Updating';
+ if(object==='UserLogin'&&/IsFrozen = true/.test(step.query))row.IsFrozen=true;
+ if(object==='PermissionSetAssignment'&&/IsRevoked/.test(step.query)){row.IsActive=false;row.IsRevoked=false;}
+ if(params.field&&/WHERE.* = null/.test(step.query))row[params.field]=null;
  return [row];
 }
 export async function sampleRun(probe,variant='A') {

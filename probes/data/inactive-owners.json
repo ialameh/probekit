@@ -1,0 +1,34 @@
+{
+  "id": "data.inactive-owners",
+  "question": "Which records on this object belong to inactive users?",
+  "family": "data",
+  "params": {
+    "obj": {
+      "type": "sobject",
+      "example": "Account"
+    },
+    "limit": {
+      "type": "int",
+      "example": "50",
+      "default": "50"
+    }
+  },
+  "safety": {
+    "writes": false
+  },
+  "steps": [
+    {
+      "name": "records",
+      "soql": "SELECT Id, OwnerId, Owner.Name, LastModifiedDate FROM {obj} WHERE OwnerId IN (SELECT Id FROM User WHERE IsActive = false) ORDER BY LastModifiedDate DESC LIMIT {limit}"
+    }
+  ],
+  "verdicts": [
+    {
+      "say": "{records.rows} row(s) returned by the first query. Review selected columns, query limits and follow-up steps; this is not an org-wide assessment."
+    }
+  ],
+  "traps": [
+    "The selected object must support OwnerId and LastModifiedDate. Queue ownership is excluded.",
+    "Visibility and the query limit constrain results. Inactive ownership is not proof the record is abandoned."
+  ]
+}

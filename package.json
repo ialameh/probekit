@@ -1,6 +1,6 @@
 {
   "name": "probekit",
-  "version": "0.5.1",
+  "version": "0.6.0",
   "author": "Sam Alameh <sam@alameh.com>",
   "description": "Named, reusable, read-only-by-default Salesforce org probes. Each probe is a JSON file: one question, typed parameters, declared safety, ordered queries, and plain-language verdicts.",
   "type": "module",

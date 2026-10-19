@@ -1,0 +1,39 @@
+{
+  "id": "data.stale-records",
+  "question": "Which records have not been modified since before the selected window?",
+  "family": "data",
+  "params": {
+    "obj": {
+      "type": "sobject",
+      "example": "Account"
+    },
+    "days": {
+      "type": "int",
+      "example": "90",
+      "default": "90"
+    },
+    "limit": {
+      "type": "int",
+      "example": "50",
+      "default": "50"
+    }
+  },
+  "safety": {
+    "writes": false
+  },
+  "steps": [
+    {
+      "name": "records",
+      "soql": "SELECT Id, LastModifiedDate, LastModifiedBy.Name FROM {obj} WHERE LastModifiedDate < LAST_N_DAYS:{days} ORDER BY LastModifiedDate ASC LIMIT {limit}"
+    }
+  ],
+  "verdicts": [
+    {
+      "say": "{records.rows} row(s) returned by the first query. Review selected columns, query limits and follow-up steps; this is not an org-wide assessment."
+    }
+  ],
+  "traps": [
+    "Old records can be valid reference or historical data. This is not a deletion list.",
+    "The object must support the selected modification fields; query limits may omit other records."
+  ]
+}

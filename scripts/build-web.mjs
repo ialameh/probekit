@@ -1,4 +1,5 @@
-import { mkdirSync, readFileSync, writeFileSync, cpSync, rmSync } from 'node:fs';
+import {version,stampRelease} from '../lib/release.mjs';
+import { mkdirSync, readFileSync, writeFileSync, cpSync, rmSync, readdirSync } from 'node:fs';
 import { loadProbes } from '../lib/engine.mjs';
 
 // Public deployments include only the shipped library, never project probes or usage.
@@ -15,4 +16,6 @@ cpSync(new URL('../web/', import.meta.url), output, { recursive: true, filter: s
 rmSync(new URL('access-analysis.test.mjs', output), { force: true });
 const catalogue = data.map(({ id, question, family, params, safety, steps, traps }) => ({ id, question, family, params, safety, steps, traps }));
 writeFileSync(new URL('investigation-catalogue.mjs', output), `export default ${JSON.stringify(catalogue).replace(/</g, '\\u003c')};\n`);
+for(const name of readdirSync(output))if(name.endsWith('.html')){const file=new URL(name,output);writeFileSync(file,stampRelease(readFileSync(file,'utf8'),data.length));}
+writeFileSync(new URL('release.json',output),JSON.stringify({version,investigations:data.length})+'\n');
 console.log(`Built ${data.length} probes into dist/index.html`);
