@@ -19,7 +19,7 @@ function clearData(){epoch++;isSample=false;runs=[makeRun(0),makeRun(1)];$('#sam
 function route(){
  const id=location.hash.slice(1);probe=catalogue.find(p=>p.id===id)??null;epoch++;
  $('#catalogue').hidden=!!probe;$('#workspace').hidden=!probe;
- if(!probe){renderPack();runs=[];$('#workspace').hidden=true;$('#run-panels').replaceChildren();for(const id of ['findings','differences','related','traps'])$('#'+id).replaceChildren();$('#notes').value='';document.title='Salesforce investigations · ProbeKit by OrgParity';renderCatalogue();return;}
+ if(!probe){window.scrollTo(0,0);renderPack();runs=[];$('#workspace').hidden=true;$('#run-panels').replaceChildren();for(const id of ['findings','differences','related','traps'])$('#'+id).replaceChildren();$('#notes').value='';document.title='Salesforce investigations · ProbeKit by OrgParity';renderCatalogue();return;}
  const info=guidance(probe);$('#title').textContent=info.title;$('#question').textContent=probe.question;$('#family-label').textContent=info.family.title;$('#guidance').textContent=info.next;
  document.title=`${info.title} · ProbeKit by OrgParity`;
  $('#workspace [data-report]').href=reportHref();
@@ -176,23 +176,40 @@ function packDownload(extension){
  const a=link('',url);a.download=`probekit-pack-${activePack.id}${data.sample?'-sample':''}.${extension}`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
 function renderPack(){
- const panel=$('#pack-panel');panel.hidden=!activePack;panel.replaceChildren();if(!activePack)return;
+ const panel=$('#pack-panel'),checkPanel=$('#pack-check-actions'),reportPanel=$('#pack-report');
+ for(const el of [panel,checkPanel,reportPanel]){el.hidden=true;el.replaceChildren();}
+ if(!activePack)return;
+ panel.hidden=false;reportPanel.hidden=false;
  const data=combinedReport(activePack.id,packEntries,packNotes);
- panel.append(node('h2',activePack.title),node('p',`${data.counts.reviewed} reviewed · ${data.counts.partial} partial · ${data.counts.skipped} skipped · ${data.counts['not started']} not started`));
- if(probe&&activePack.probes.includes(probe.id))panel.append(btn('Work on this check ↓',()=>{$('#workspace').scrollIntoView({behavior:'smooth'});$('#title').setAttribute('tabindex','-1');$('#title').focus({preventScroll:true});}));
- panel.append(node('p','Save each check before moving on. Only summaries stay in this tab; raw exports are discarded when you change investigations. Reopening or editing a check removes its saved summary until you save it again. Reloading clears the pack.','small'));
- if(data.sample)panel.append(node('p','FICTIONAL SAMPLE PACK — not an org assessment','notice'));
+ const current=probe&&activePack.probes.includes(probe.id),finished=data.counts['not started']===0;
+ if(!probe&&finished)$('#catalogue').hidden=true;
+ panel.append(node('p',current?`Investigation pack · Check ${activePack.probes.indexOf(probe.id)+1} of ${activePack.probes.length}`:'Investigation pack','eyebrow'),node('h2',activePack.title));
+ panel.append(node('p',`${packEntries.length} of ${activePack.probes.length} checks saved or skipped · ${data.counts.partial} partial`,'small'));
+ const checklist=node('details');checklist.append(node('summary','View pack checklist'));
  const list=node('ol');
- for(const id of activePack.probes){const item=node('li'),p=catalogue.find(p=>p.id===id),entry=packEntries.find(e=>e.id===id);item.append(link(guidance(p).title,'#'+id),document.createTextNode(' · '+(entry?.status??'not started')));list.append(item);}panel.append(list);
- const error=node('p','','error');error.setAttribute('role','alert');
- if(probe&&activePack.probes.includes(probe.id)){
-  const actions=node('div',undefined,'actions');
-  actions.append(btn('Save check and continue',()=>{try{const items=summaries(),entry=captureCheck(probe,items,{sample:isSample,notes:$('#notes').value,comparisons:comparisons(items)});const entries=[...packEntries.filter(e=>e.id!==probe.id),entry];combinedReport(activePack.id,entries,packNotes);packEntries=entries;nextCheck();announce('Check summary saved.');}catch(e){error.textContent=e.message;}}));
+ for(const id of activePack.probes){const item=node('li'),p=catalogue.find(p=>p.id===id),entry=packEntries.find(e=>e.id===id);const a=link(guidance(p).title,'#'+id);if(id===probe?.id)a.setAttribute('aria-current','step');item.append(a,document.createTextNode(' · '+(id===probe?.id?'current check':entry?.status??'not started')));list.append(item);}
+ checklist.append(list,node('p','Save before moving on. Reopening or editing a check removes its saved summary until you save again. Raw exports are discarded between checks; summaries stay only in this tab. Reloading clears the pack.','small'));panel.append(checklist);
+ if(current){
+  panel.append(node('p','Build the queries below, import results, then review the findings and save this check. You can also try the fictional sample.','small'));
+  checkPanel.hidden=false;checkPanel.append(node('h2','Save this check to the pack'));
+  checkPanel.append(node('p','Review the evidence above. Save its summary to move to the next check, or record why you are skipping it.'));
+  const error=node('p','','error');error.setAttribute('role','alert');
+  const save=btn('Save check and continue',()=>{try{const items=summaries(),entry=captureCheck(probe,items,{sample:isSample,notes:$('#notes').value,comparisons:comparisons(items)});const entries=[...packEntries.filter(e=>e.id!==probe.id),entry];combinedReport(activePack.id,entries,packNotes);packEntries=entries;nextCheck();announce('Check summary saved.');}catch(e){error.textContent=e.message;}});
+  save.disabled=!runs.some(r=>r.params);checkPanel.append(save);
+  if(save.disabled)checkPanel.append(node('p','Build query steps or load the fictional sample to enable saving.','small'));
+  else if(summaries().some(r=>r.steps.length!==probe.steps.length||r.steps.some(s=>!['complete','skipped'].includes(s.state))))checkPanel.append(node('p','This check is incomplete. Saving will mark it as partial in the report.','notice'));
+  const skip=node('details');skip.append(node('summary','Cannot complete this check? Skip with a reason'));
   const reason=node('input');reason.maxLength=300;reason.placeholder='Reason for skipping this check';reason.setAttribute('aria-label','Reason for skipping this check');
-  actions.append(reason,btn('Skip check',()=>{if(!reason.value.trim()){error.textContent='Give a reason so the report explains the gap.';return;}packEntries=[...packEntries.filter(e=>e.id!==probe.id),{id:probe.id,status:'skipped',reason:reason.value.trim()}];nextCheck();}));panel.append(actions);
+  skip.append(reason,btn('Skip check',()=>{if(!reason.value.trim()){error.textContent='Give a reason so the report explains the gap.';return;}packEntries=[...packEntries.filter(e=>e.id!==probe.id),{id:probe.id,status:'skipped',reason:reason.value.trim()}];nextCheck();}));checkPanel.append(skip,error);
  }
- const label=node('label','Pack notes (optional)'),notes=node('textarea');notes.maxLength=10000;notes.value=packNotes;notes.oninput=()=>{packNotes=notes.value;};label.append(notes);panel.append(label);
- const actions=node('div',undefined,'actions');actions.append(btn('Download pack (.txt)',()=>packDownload('txt')),btn('Download pack (.json)',()=>packDownload('json')),btn('Clear pack',()=>{activePack=null;packEntries=[];packNotes='';if(probe)clearData();renderPack();announce('Pack and current investigation cleared.');}));
- panel.append(actions,error,node('p','Reports include partial checks and gaps. Reviewed does not mean passed. No cross-check correlation or org identity verification is performed. Review parameters, queries and notes before sharing. Starting another pack replaces this one.','small'));
+ const report=node('details');report.open=!probe;report.append(node('summary',finished?'Your combined pack report':'Combined report and pack options'));
+ report.append(node('p',finished?'Every check has a saved summary or a skip reason. Review the coverage below before downloading.':'You can download a progress report at any time. Unfinished checks stay visible as gaps.'));
+ report.append(node('p',`${data.counts.reviewed} reviewed · ${data.counts.partial} partial · ${data.counts.skipped} skipped · ${data.counts['not started']} not started`));
+ if(data.sample)report.append(node('p','FICTIONAL SAMPLE PACK — not an org assessment','notice'));
+ if(!probe&&!finished)report.append(btn('Continue next check',nextCheck));
+ const label=node('label','Pack notes (optional)'),notes=node('textarea');notes.maxLength=10000;notes.value=packNotes;notes.oninput=()=>{packNotes=notes.value;};label.append(notes);report.append(label);
+ const actions=node('div',undefined,'actions');actions.append(btn('Download pack (.txt)',()=>packDownload('txt')),btn('Download pack (.json)',()=>packDownload('json')),btn('Clear pack',()=>{activePack=null;packEntries=[];packNotes='';if(probe)clearData();renderPack();$('#catalogue').hidden=!!probe;announce('Pack and current investigation cleared.');}));
+ report.append(actions,node('p','Reviewed does not mean passed. Reports include partial checks and gaps, and do not verify a common org or time window. Review parameters, queries and notes before sharing.','small'));reportPanel.append(report);
 }
+
 route();

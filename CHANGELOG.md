@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.7.1
+
+- Put current pack checks before save and report controls, with compact progress and a collapsible checklist.
+- Added a completion report view and disabled saving until query steps exist.
+
 ## 0.7.0
 
 - Added six guided investigation packs with saved check summaries and combined text/JSON reports.
