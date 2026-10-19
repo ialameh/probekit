@@ -1,0 +1,48 @@
+{
+  "id": "access.record-shares",
+  "question": "Which share rows open this record, to whom, and why?",
+  "family": "access",
+  "params": {
+    "share": {
+      "type": "sobject",
+      "example": "AccountShare"
+    },
+    "parent": {
+      "type": "field",
+      "example": "AccountId"
+    },
+    "level": {
+      "type": "field",
+      "example": "AccountAccessLevel"
+    },
+    "record": {
+      "type": "id",
+      "example": "001000000000000AAA"
+    }
+  },
+  "safety": {
+    "writes": false
+  },
+  "steps": [
+    {
+      "name": "shares",
+      "compare": [
+        "UserOrGroup.Name",
+        "RowCause"
+      ],
+      "soql": "SELECT UserOrGroupId, UserOrGroup.Name, {level}, RowCause, LastModifiedDate FROM {share} WHERE {parent} = '{record}' ORDER BY RowCause"
+    }
+  ],
+  "verdicts": [
+    {
+      "when": "shares.rows === 0",
+      "say": "No share rows on {record}."
+    },
+    {
+      "say": "{shares.rows} share row(s) on {record}."
+    }
+  ],
+  "traps": [
+    "Standard objects name the parent and level fields after the object (AccountId, AccountAccessLevel); custom share objects use ParentId and AccessLevel."
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "id": "data.history",
+  "question": "How did the tracked fields of this record change over time?",
+  "family": "data",
+  "params": {
+    "history": {
+      "type": "sobject",
+      "example": "AccountHistory"
+    },
+    "parent": {
+      "type": "field",
+      "example": "AccountId"
+    },
+    "id": {
+      "type": "id",
+      "example": "001000000000000AAA"
+    },
+    "limit": {
+      "type": "int",
+      "example": "100",
+      "default": "100"
+    }
+  },
+  "safety": {
+    "writes": false
+  },
+  "steps": [
+    {
+      "name": "changes",
+      "soql": "SELECT Field, OldValue, NewValue, CreatedBy.Name, CreatedDate FROM {history} WHERE {parent} = '{id}' ORDER BY CreatedDate DESC LIMIT {limit}"
+    }
+  ],
+  "verdicts": [
+    {
+      "when": "changes.rows === 0",
+      "say": "No tracked changes on {id}."
+    },
+    {
+      "say": "{changes.rows} tracked change(s) on {id}."
+    }
+  ],
+  "traps": [
+    "Only tracked fields appear, from the day tracking was switched on.",
+    "Standard objects: <Object>History with <Object>Id. Custom objects: <Object>__History with ParentId."
+  ]
+}

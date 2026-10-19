@@ -1,0 +1,39 @@
+{
+  "id": "ops.test-results",
+  "question": "How did the latest test runs of this class go?",
+  "family": "ops",
+  "params": {
+    "apexclass": {
+      "type": "name",
+      "example": "AccountServiceTest"
+    },
+    "limit": {
+      "type": "int",
+      "example": "50",
+      "default": "50"
+    }
+  },
+  "safety": {
+    "writes": false
+  },
+  "steps": [
+    {
+      "name": "results",
+      "soql": "SELECT MethodName, Outcome, Message, RunTime, TestTimestamp, AsyncApexJobId FROM ApexTestResult WHERE ApexClass.Name = '{apexclass}' ORDER BY TestTimestamp DESC LIMIT {limit}"
+    }
+  ],
+  "verdicts": [
+    {
+      "when": "results.rows === 0",
+      "say": "No test results for {apexclass}."
+    },
+    {
+      "when": "results.records.some(r => r.Outcome !== \"Pass\")",
+      "say": "{= results.records.filter(r => r.Outcome !== \"Pass\").length} of the latest {results.rows} result(s) did not pass."
+    },
+    {
+      "say": "Latest {results.rows} result(s) all passed."
+    }
+  ],
+  "traps": []
+}

@@ -1,0 +1,43 @@
+{
+  "id": "flow.interviews",
+  "question": "Which flow interviews are paused or waiting on this org?",
+  "family": "flow",
+  "params": {
+    "days": {
+      "type": "int",
+      "example": "7",
+      "default": "7"
+    },
+    "label": {
+      "type": "text",
+      "example": "Account",
+      "optional": true
+    },
+    "limit": {
+      "type": "int",
+      "example": "50",
+      "default": "50"
+    }
+  },
+  "safety": {
+    "writes": false
+  },
+  "steps": [
+    {
+      "name": "interviews",
+      "soql": "SELECT Name, InterviewLabel, InterviewStatus, CurrentElement, PauseLabel, CreatedBy.Name, CreatedDate FROM FlowInterview WHERE CreatedDate = LAST_N_DAYS:{days} [[AND InterviewLabel LIKE '{label}%']] ORDER BY CreatedDate DESC LIMIT {limit}"
+    }
+  ],
+  "verdicts": [
+    {
+      "when": "interviews.rows === 0",
+      "say": "No held interviews in the last {days} day(s)."
+    },
+    {
+      "say": "{interviews.rows} held interview(s)."
+    }
+  ],
+  "traps": [
+    "Finished interviews are not kept here. For failures, read the flow error emails or the debug log."
+  ]
+}

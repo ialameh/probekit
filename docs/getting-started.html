@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Getting started · ProbeKit</title>
+<style>
+:root { color-scheme: light dark; font-family: system-ui, sans-serif; line-height: 1.6; }
+body { max-width: 800px; margin: auto; padding: 24px; }
+nav { display: flex; flex-wrap: wrap; gap: 20px; }
+a { color: light-dark(#2459d6, #8bb3ff); }
+pre { padding: 16px; background: light-dark(#f1f3f7, #222833); border-radius: 8px; overflow-x: auto; }
+code { font-family: ui-monospace, monospace; }
+section { margin: 36px 0; }
+</style>
+</head>
+<body>
+<nav aria-label="Resources"><a href="/">Probe library</a><a href="https://github.com/ialameh/probekit">GitHub repository</a><a href="https://github.com/ialameh/probekit/archive/refs/heads/main.zip">Download ZIP</a></nav>
+<main>
+<h1>Get started with ProbeKit</h1>
+<p>Browse reusable Salesforce queries, preview their SOQL, and run probes from your computer.</p>
+<section><h2>Use the library in your browser</h2>
+<p>Open the <a href="/">probe library</a>, search for an object or question, and select a probe. Fill in its parameters to preview the command and SOQL. Copy the result using the copy buttons.</p>
+<p>No installation is needed to browse. The website does not connect to your Salesforce org or execute queries.</p></section>
+<section><h2>Download and open locally</h2>
+<ol><li><a href="https://github.com/ialameh/probekit/archive/refs/heads/main.zip">Download the ZIP</a> and extract it.</li>
+<li>For an offline library, open <code>docs/index.html</code> in your browser.</li>
+<li>For the CLI or local server, install <a href="https://nodejs.org/en/download">Node.js</a> version 20 or newer. No project dependencies need installing.</li></ol>
+<p>On Windows, open the extracted folder in File Explorer, type <code>cmd</code> in the address bar and press Enter. On macOS or Linux, open a terminal in that folder.</p>
+<pre><code>node probe.mjs web --serve</code></pre>
+<p>Open <a href="http://127.0.0.1:4791">http://127.0.0.1:4791</a>. Press Ctrl+C in the terminal to stop the server.</p></section>
+<section><h2>Run a probe against Salesforce</h2>
+<p>Install the <a href="https://developer.salesforce.com/tools/salesforcecli">Salesforce CLI</a>. Authenticate a sandbox and give it an alias:</p>
+<pre><code>sf org login web --alias MyDev --instance-url https://test.salesforce.com</code></pre>
+<p>For a Developer Edition org, omit the <code>--instance-url</code> option.</p>
+<p>Inside the extracted ProbeKit folder, create a folder named <code>.probekit</code>. Save the following as <code>.probekit/config.json</code>, using the alias you authenticated:</p>
+<pre><code>{
+  "orgs": {
+    "dev": { "alias": "MyDev", "readonly": true }
+  }
+}</code></pre>
+<p>From the ProbeKit folder, list the probes, inspect one, and run it:</p>
+<pre><code>node probe.mjs list
+node probe.mjs show access.field-grants
+node probe.mjs run access.field-grants --org dev --obj Account --field Industry</code></pre>
+<p>Add <code>--soql</code> to print the queries. Results appear in the terminal; run history is saved in <code>.probekit/usage/</code>.</p>
+<p>The browser previews commands beginning with <code>probe</code>. Use <code>node probe.mjs</code> in its place when running from the extracted folder, or run <code>npm link</code> once to install the <code>probe</code> command.</p>
+<p>See the <a href="https://github.com/ialameh/probekit#readme">README</a> for multiple-org comparisons, project probes, and production configuration.</p></section>
+</main>
+</body>
+</html>

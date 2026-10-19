@@ -1,0 +1,44 @@
+{
+  "id": "access.apex-class-access",
+  "question": "Which profiles and permission sets may run this Apex class?",
+  "family": "access",
+  "params": {
+    "name": {
+      "type": "name",
+      "example": "AccountService"
+    }
+  },
+  "safety": {
+    "writes": false
+  },
+  "steps": [
+    {
+      "name": "cls",
+      "soql": "SELECT Id, Name FROM ApexClass WHERE Name = '{name}'"
+    },
+    {
+      "name": "grants",
+      "compare": [
+        "Parent.Name"
+      ],
+      "when": "cls.rows === 1",
+      "soql": "SELECT Parent.Name, Parent.IsOwnedByProfile, Parent.Profile.Name FROM SetupEntityAccess WHERE SetupEntityId IN ({@cls.Id}) ORDER BY Parent.Name"
+    }
+  ],
+  "verdicts": [
+    {
+      "when": "cls.rows === 0",
+      "say": "No class {name}."
+    },
+    {
+      "when": "grants.rows === 0",
+      "say": "{name} exists but no profile or permission set grants it."
+    },
+    {
+      "say": "{grants.rows} profile(s) or permission set(s) grant {name}."
+    }
+  ],
+  "traps": [
+    "Class access matters for Apex called from the UI (Aura, LWC, Visualforce); triggers and system-context calls ignore it."
+  ]
+}

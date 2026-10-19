@@ -1,0 +1,51 @@
+{
+  "id": "omni.elements",
+  "question": "What steps does the active version of this OmniScript or Integration Procedure run?",
+  "family": "omni",
+  "params": {
+    "type": {
+      "type": "name",
+      "example": "Account"
+    },
+    "subtype": {
+      "type": "name",
+      "example": "Create"
+    }
+  },
+  "safety": {
+    "writes": false
+  },
+  "steps": [
+    {
+      "name": "process",
+      "soql": "SELECT Id, Name, VersionNumber FROM OmniProcess WHERE Type = '{type}' AND SubType = '{subtype}' AND IsActive = true"
+    },
+    {
+      "name": "elements",
+      "hash": [
+        "PropertySetConfig"
+      ],
+      "compare": [
+        "Name",
+        "Type",
+        "IsActive",
+        "PropertySetConfig"
+      ],
+      "when": "process.rows === 1",
+      "soql": "SELECT Name, Type, Level, SequenceNumber, IsActive, PropertySetConfig FROM OmniProcessElement WHERE OmniProcessId IN ({@process.Id}) ORDER BY Level, SequenceNumber"
+    }
+  ],
+  "verdicts": [
+    {
+      "when": "process.rows === 0",
+      "say": "No active version of {type}/{subtype}."
+    },
+    {
+      "say": "{type}/{subtype} v{= process.records[0].VersionNumber}: {elements.rows} element(s)."
+    }
+  ],
+  "traps": [
+    "Run on two orgs to see which steps differ; the PropertySetConfig hash shows a changed step.",
+    "Presence is not execution: an element that is inactive, or behind a condition, may never run."
+  ]
+}

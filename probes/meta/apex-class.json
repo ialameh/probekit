@@ -1,0 +1,42 @@
+{
+  "id": "meta.apex-class",
+  "question": "Which version of this Apex class is on the org, and who built and last changed it?",
+  "family": "meta",
+  "params": {
+    "name": {
+      "type": "name",
+      "example": "AccountTriggerHandler"
+    }
+  },
+  "safety": {
+    "writes": false
+  },
+  "steps": [
+    {
+      "name": "apex",
+      "hash": [
+        "Body"
+      ],
+      "soql": "SELECT Name, ApiVersion, Status, CreatedBy.Name, CreatedDate, LastModifiedBy.Name, LastModifiedDate, LengthWithoutComments, Body FROM ApexClass WHERE Name = '{name}'",
+      "compare": [
+        "Name",
+        "ApiVersion",
+        "Status",
+        "Body"
+      ]
+    }
+  ],
+  "verdicts": [
+    {
+      "when": "apex.rows === 0",
+      "say": "No class named {name} on this org."
+    },
+    {
+      "say": "{name} is present. Compare the Body hash across orgs, not the dates."
+    }
+  ],
+  "traps": [
+    "LastModifiedDate can read hours stale after a deploy. The Body hash is the reliable comparison.",
+    "On a deploy target, CreatedBy is the deployer and CreatedDate the deploy date. Read authorship on the org where it was built."
+  ]
+}

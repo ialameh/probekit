@@ -1,0 +1,27 @@
+{
+  "id": "meta.installed-packages",
+  "question": "Which managed packages are installed, at which version?",
+  "family": "meta",
+  "params": {},
+  "safety": {
+    "writes": false
+  },
+  "steps": [
+    {
+      "name": "packages",
+      "tooling": true,
+      "compare": [
+        "SubscriberPackage.NamespacePrefix",
+        "SubscriberPackageVersion.MajorVersion",
+        "SubscriberPackageVersion.MinorVersion"
+      ],
+      "soql": "SELECT SubscriberPackage.Name, SubscriberPackage.NamespacePrefix, SubscriberPackageVersion.MajorVersion, SubscriberPackageVersion.MinorVersion, SubscriberPackageVersion.PatchVersion FROM InstalledSubscriberPackage ORDER BY SubscriberPackage.Name LIMIT 500"
+    }
+  ],
+  "verdicts": [
+    {
+      "say": "{packages.rows} package(s) installed."
+    }
+  ],
+  "traps": []
+}

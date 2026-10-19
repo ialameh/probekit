@@ -1,0 +1,32 @@
+{
+  "id": "data.files",
+  "question": "Which files are attached to this record, and who can see them?",
+  "family": "data",
+  "params": {
+    "id": {
+      "type": "id",
+      "example": "001000000000000AAA"
+    }
+  },
+  "safety": {
+    "writes": false
+  },
+  "steps": [
+    {
+      "name": "files",
+      "soql": "SELECT ContentDocument.Title, ContentDocument.FileExtension, ContentDocument.ContentSize, ShareType, Visibility, ContentDocument.LastModifiedDate FROM ContentDocumentLink WHERE LinkedEntityId = '{id}' ORDER BY ContentDocument.LastModifiedDate DESC"
+    }
+  ],
+  "verdicts": [
+    {
+      "when": "files.rows === 0",
+      "say": "No files on {id}."
+    },
+    {
+      "say": "{files.rows} file(s) on {id}."
+    }
+  ],
+  "traps": [
+    "Visibility AllUsers is needed for portal and community users to see a file."
+  ]
+}

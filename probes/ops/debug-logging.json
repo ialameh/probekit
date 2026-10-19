@@ -1,0 +1,52 @@
+{
+  "id": "ops.debug-logging",
+  "question": "Is debug logging on for this user, and what are their latest logs?",
+  "family": "ops",
+  "params": {
+    "user": {
+      "type": "username",
+      "example": "jane.doe@example.com"
+    },
+    "limit": {
+      "type": "int",
+      "example": "20",
+      "default": "20"
+    }
+  },
+  "safety": {
+    "writes": false
+  },
+  "steps": [
+    {
+      "name": "u",
+      "soql": "SELECT Id FROM User WHERE Username = '{user}'"
+    },
+    {
+      "name": "flags",
+      "tooling": true,
+      "when": "u.rows === 1",
+      "soql": "SELECT LogType, StartDate, ExpirationDate, DebugLevel.DeveloperName FROM TraceFlag WHERE TracedEntityId IN ({@u.Id}) ORDER BY ExpirationDate DESC"
+    },
+    {
+      "name": "logs",
+      "when": "u.rows === 1",
+      "soql": "SELECT Id, StartTime, Operation, Status, LogLength, DurationMilliseconds FROM ApexLog WHERE LogUserId IN ({@u.Id}) ORDER BY StartTime DESC LIMIT {limit}"
+    }
+  ],
+  "verdicts": [
+    {
+      "when": "u.rows === 0",
+      "say": "No user {user}."
+    },
+    {
+      "when": "flags.records.filter(r => new Date(r.ExpirationDate) > new Date()).length === 0",
+      "say": "No live trace flag for {user}: no new logs are being written."
+    },
+    {
+      "say": "Logging is on for {user}; {logs.rows} recent log(s)."
+    }
+  ],
+  "traps": [
+    "Read a log body with: sf apex get log -i <Id>."
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "id": "omni.flexcard",
+  "question": "Which version of this FlexCard is active, and who changed each version?",
+  "family": "omni",
+  "params": {
+    "name": {
+      "type": "name",
+      "example": "AccountSummaryCard"
+    }
+  },
+  "safety": {
+    "writes": false
+  },
+  "steps": [
+    {
+      "name": "versions",
+      "compare": [
+        "VersionNumber",
+        "IsActive"
+      ],
+      "soql": "SELECT Name, VersionNumber, IsActive, CreatedBy.Name, CreatedDate, LastModifiedBy.Name, LastModifiedDate FROM OmniUiCard WHERE Name = '{name}' ORDER BY VersionNumber DESC"
+    }
+  ],
+  "verdicts": [
+    {
+      "when": "versions.rows === 0",
+      "say": "No FlexCard {name}."
+    },
+    {
+      "when": "versions.records.filter(r => r.IsActive).length === 0",
+      "say": "{name} has no active version."
+    },
+    {
+      "say": "{name}: version {= versions.records.find(r => r.IsActive).VersionNumber} is active."
+    }
+  ],
+  "traps": [
+    "Edit a new version, never the active one in place."
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "id": "ops.scheduled-jobs",
+  "question": "Which scheduled jobs exist, who owns them, and when do they fire next?",
+  "family": "ops",
+  "params": {
+    "name": {
+      "type": "text",
+      "example": "%",
+      "default": "%"
+    }
+  },
+  "safety": {
+    "writes": false
+  },
+  "steps": [
+    {
+      "name": "jobs",
+      "compare": [
+        "CronJobDetail.Name",
+        "State",
+        "CronExpression",
+        "CreatedBy.Name"
+      ],
+      "soql": "SELECT CronJobDetail.Name, CronJobDetail.JobType, State, CronExpression, NextFireTime, PreviousFireTime, CreatedBy.Name FROM CronTrigger WHERE CronJobDetail.Name LIKE '{name}' ORDER BY CronJobDetail.Name LIMIT 500"
+    }
+  ],
+  "verdicts": [
+    {
+      "when": "jobs.rows === 0",
+      "say": "No scheduled jobs matched {name}."
+    },
+    {
+      "say": "{jobs.rows} scheduled job(s)."
+    }
+  ],
+  "traps": [
+    "A scheduled job runs as the user who scheduled it (CreatedBy).",
+    "A scheduled Apex class cannot be redeployed while its schedule exists."
+  ]
+}

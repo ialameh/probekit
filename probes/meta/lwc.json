@@ -1,0 +1,49 @@
+{
+  "id": "meta.lwc",
+  "question": "Is this Lightning web component the same across orgs, file by file?",
+  "family": "meta",
+  "params": {
+    "name": {
+      "type": "name",
+      "example": "accountSummary"
+    }
+  },
+  "safety": {
+    "writes": false
+  },
+  "steps": [
+    {
+      "name": "bundle",
+      "tooling": true,
+      "compare": [
+        "DeveloperName",
+        "ApiVersion",
+        "IsExposed"
+      ],
+      "soql": "SELECT Id, DeveloperName, MasterLabel, ApiVersion, IsExposed, CreatedBy.Name, CreatedDate, LastModifiedBy.Name, LastModifiedDate FROM LightningComponentBundle WHERE DeveloperName = '{name}'"
+    },
+    {
+      "name": "files",
+      "tooling": true,
+      "hash": [
+        "Source"
+      ],
+      "compare": [
+        "FilePath",
+        "Source"
+      ],
+      "when": "bundle.rows === 1",
+      "soql": "SELECT FilePath, Format, LastModifiedDate, Source FROM LightningComponentResource WHERE LightningComponentBundleId IN ({@bundle.Id}) ORDER BY FilePath"
+    }
+  ],
+  "verdicts": [
+    {
+      "when": "bundle.rows === 0",
+      "say": "No component {name}."
+    },
+    {
+      "say": "{name}: {files.rows} file(s)."
+    }
+  ],
+  "traps": []
+}

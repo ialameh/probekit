@@ -1,0 +1,36 @@
+{
+  "id": "meta.record-types",
+  "question": "Which record types does this object have, and which are active?",
+  "family": "meta",
+  "params": {
+    "obj": {
+      "type": "sobject",
+      "example": "Account"
+    }
+  },
+  "safety": {
+    "writes": false
+  },
+  "steps": [
+    {
+      "name": "types",
+      "compare": [
+        "DeveloperName",
+        "IsActive"
+      ],
+      "soql": "SELECT Id, DeveloperName, Name, IsActive FROM RecordType WHERE SobjectType = '{obj}' ORDER BY DeveloperName"
+    }
+  ],
+  "verdicts": [
+    {
+      "when": "types.rows === 0",
+      "say": "{obj} has no record types."
+    },
+    {
+      "say": "{obj}: {types.rows} record type(s)."
+    }
+  ],
+  "traps": [
+    "Record type ids differ between orgs. Compare and reference by DeveloperName."
+  ]
+}

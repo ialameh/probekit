@@ -1,0 +1,45 @@
+{
+  "id": "meta.email-template",
+  "question": "Is this email template the same across orgs, and is it active?",
+  "family": "meta",
+  "params": {
+    "name": {
+      "type": "name",
+      "example": "Welcome_Email"
+    }
+  },
+  "safety": {
+    "writes": false
+  },
+  "steps": [
+    {
+      "name": "tpl",
+      "hash": [
+        "Body",
+        "HtmlValue"
+      ],
+      "compare": [
+        "DeveloperName",
+        "IsActive",
+        "Subject",
+        "Body",
+        "HtmlValue"
+      ],
+      "soql": "SELECT DeveloperName, Name, UiType, TemplateType, IsActive, FolderName, Subject, CreatedBy.Name, CreatedDate, LastModifiedBy.Name, LastModifiedDate, Body, HtmlValue FROM EmailTemplate WHERE DeveloperName = '{name}'"
+    }
+  ],
+  "verdicts": [
+    {
+      "when": "tpl.rows === 0",
+      "say": "No email template {name}."
+    },
+    {
+      "when": "tpl.records[0].IsActive === false",
+      "say": "{name} is inactive."
+    },
+    {
+      "say": "{name} is active."
+    }
+  ],
+  "traps": []
+}

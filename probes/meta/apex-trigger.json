@@ -1,0 +1,40 @@
+{
+  "id": "meta.apex-trigger",
+  "question": "Which triggers run on this object, and are they the same across orgs?",
+  "family": "meta",
+  "params": {
+    "obj": {
+      "type": "sobject",
+      "example": "Account"
+    }
+  },
+  "safety": {
+    "writes": false
+  },
+  "steps": [
+    {
+      "name": "triggers",
+      "hash": [
+        "Body"
+      ],
+      "compare": [
+        "Name",
+        "Status",
+        "Body"
+      ],
+      "soql": "SELECT Name, Status, ApiVersion, UsageBeforeInsert, UsageAfterInsert, UsageBeforeUpdate, UsageAfterUpdate, CreatedBy.Name, CreatedDate, LastModifiedBy.Name, LastModifiedDate, Body FROM ApexTrigger WHERE TableEnumOrId = '{obj}' ORDER BY Name"
+    }
+  ],
+  "verdicts": [
+    {
+      "when": "triggers.rows === 0",
+      "say": "No triggers on {obj}."
+    },
+    {
+      "say": "{obj}: {= triggers.records.filter(r => r.Status === \"Active\").length} active trigger(s) of {triggers.rows}."
+    }
+  ],
+  "traps": [
+    "Compare the Body hash, not LastModifiedDate, which can read stale after a deploy."
+  ]
+}

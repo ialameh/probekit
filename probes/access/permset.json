@@ -1,0 +1,65 @@
+{
+  "id": "access.permset",
+  "question": "What is this permission set: licence, type, key system permissions, and how much does it grant?",
+  "family": "access",
+  "params": {
+    "permset": {
+      "type": "name",
+      "example": "Sales_Operations"
+    }
+  },
+  "safety": {
+    "writes": false
+  },
+  "steps": [
+    {
+      "name": "ps",
+      "compare": [
+        "Name",
+        "Type",
+        "License.Name",
+        "PermissionsModifyAllData",
+        "PermissionsViewAllData",
+        "PermissionsApiEnabled"
+      ],
+      "soql": "SELECT Id, Name, Label, Type, License.Name, IsCustom, NamespacePrefix, PermissionsModifyAllData, PermissionsViewAllData, PermissionsApiEnabled, PermissionsCustomizeApplication, CreatedBy.Name, CreatedDate, LastModifiedBy.Name, LastModifiedDate FROM PermissionSet WHERE Name = '{permset}'"
+    },
+    {
+      "name": "objects",
+      "compare": [
+        "SobjectType",
+        "PermissionsRead",
+        "PermissionsEdit",
+        "PermissionsDelete"
+      ],
+      "when": "ps.rows === 1",
+      "soql": "SELECT SobjectType, PermissionsRead, PermissionsEdit, PermissionsDelete FROM ObjectPermissions WHERE ParentId IN ({@ps.Id}) ORDER BY SobjectType"
+    },
+    {
+      "name": "fields",
+      "compare": [
+        "Field",
+        "PermissionsRead",
+        "PermissionsEdit"
+      ],
+      "when": "ps.rows === 1",
+      "soql": "SELECT Field, PermissionsRead, PermissionsEdit FROM FieldPermissions WHERE ParentId IN ({@ps.Id}) ORDER BY Field"
+    }
+  ],
+  "verdicts": [
+    {
+      "when": "ps.rows === 0",
+      "say": "No permission set {permset}."
+    },
+    {
+      "when": "ps.records[0].PermissionsModifyAllData",
+      "say": "{permset} grants Modify All Data."
+    },
+    {
+      "say": "{permset}: {objects.rows} object grant(s), {fields.rows} field grant(s)."
+    }
+  ],
+  "traps": [
+    "Run on two orgs to see grant drift; a permission set deploy replaces the whole set, so drift here is what a deploy would overwrite."
+  ]
+}

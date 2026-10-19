@@ -1,0 +1,52 @@
+{
+  "id": "access.group-members",
+  "question": "Who is in this public group or queue, and which objects does the queue serve?",
+  "family": "access",
+  "params": {
+    "group": {
+      "type": "name",
+      "example": "Sales_Queue"
+    }
+  },
+  "safety": {
+    "writes": false
+  },
+  "steps": [
+    {
+      "name": "grp",
+      "soql": "SELECT Id, DeveloperName, Name, Type FROM Group WHERE DeveloperName = '{group}'"
+    },
+    {
+      "name": "members",
+      "when": "grp.rows > 0",
+      "soql": "SELECT UserOrGroupId, GroupId FROM GroupMember WHERE GroupId IN ({@grp.Id})"
+    },
+    {
+      "name": "users",
+      "compare": [
+        "Username",
+        "IsActive"
+      ],
+      "when": "members.rows > 0",
+      "soql": "SELECT Name, Username, IsActive FROM User WHERE Id IN ({@members.UserOrGroupId}) ORDER BY Name"
+    },
+    {
+      "name": "queue_objects",
+      "compare": [
+        "SobjectType"
+      ],
+      "when": "grp.rows > 0",
+      "soql": "SELECT SobjectType FROM QueueSobject WHERE QueueId IN ({@grp.Id})"
+    }
+  ],
+  "verdicts": [
+    {
+      "when": "grp.rows === 0",
+      "say": "No group or queue {group}."
+    },
+    {
+      "say": "{group} has {members.rows} member(s): {users.rows} user(s), the rest are groups or roles."
+    }
+  ],
+  "traps": []
+}

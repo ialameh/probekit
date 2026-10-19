@@ -1,0 +1,53 @@
+{
+  "id": "omni.data-mapper",
+  "question": "What does this Data Mapper read and write, and is it the same across orgs?",
+  "family": "omni",
+  "params": {
+    "name": {
+      "type": "name",
+      "example": "DRExtractAccount"
+    }
+  },
+  "safety": {
+    "writes": false
+  },
+  "steps": [
+    {
+      "name": "mapper",
+      "compare": [
+        "Name",
+        "Type",
+        "VersionNumber",
+        "IsActive"
+      ],
+      "soql": "SELECT Id, Name, Type, VersionNumber, IsActive, InputType, OutputType, CreatedBy.Name, CreatedDate, LastModifiedBy.Name, LastModifiedDate FROM OmniDataTransform WHERE Name = '{name}'"
+    },
+    {
+      "name": "items",
+      "compare": [
+        "InputObjectName",
+        "InputFieldName",
+        "OutputObjectName",
+        "OutputFieldName",
+        "FilterOperator",
+        "FilterValue",
+        "FormulaExpression",
+        "IsDisabled"
+      ],
+      "when": "mapper.rows > 0",
+      "soql": "SELECT InputObjectName, InputFieldName, OutputObjectName, OutputFieldName, FilterOperator, FilterValue, FormulaExpression, IsDisabled FROM OmniDataTransformItem WHERE OmniDataTransformationId IN ({@mapper.Id}) ORDER BY OutputObjectName, OutputFieldName"
+    }
+  ],
+  "verdicts": [
+    {
+      "when": "mapper.rows === 0",
+      "say": "No Data Mapper {name}."
+    },
+    {
+      "say": "{name}: {items.rows} mapping item(s)."
+    }
+  ],
+  "traps": [
+    "In an extract filter, an unquoted $Vlocity.NULL on \"=\" silently skips the whole query. Quote it."
+  ]
+}

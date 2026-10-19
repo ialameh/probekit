@@ -1,0 +1,49 @@
+{
+  "id": "omni.compiled",
+  "question": "Has the active OmniScript been compiled since it last changed?",
+  "family": "omni",
+  "params": {
+    "type": {
+      "type": "name",
+      "example": "Account"
+    },
+    "subtype": {
+      "type": "name",
+      "example": "Create"
+    }
+  },
+  "safety": {
+    "writes": false
+  },
+  "steps": [
+    {
+      "name": "process",
+      "soql": "SELECT Id, Name, VersionNumber, LastModifiedDate FROM OmniProcess WHERE Type = '{type}' AND SubType = '{subtype}' AND IsActive = true"
+    },
+    {
+      "name": "compiled",
+      "when": "process.rows === 1",
+      "soql": "SELECT Name, CreatedDate, LastModifiedDate FROM OmniProcessCompilation WHERE OmniProcessId IN ({@process.Id}) ORDER BY LastModifiedDate DESC"
+    }
+  ],
+  "verdicts": [
+    {
+      "when": "process.rows === 0",
+      "say": "No active version of {type}/{subtype}."
+    },
+    {
+      "when": "compiled.rows === 0",
+      "say": "{type}/{subtype} has no compiled copy: the page renders blank until it is compiled."
+    },
+    {
+      "when": "new Date(compiled.records[0].LastModifiedDate) < new Date(process.records[0].LastModifiedDate)",
+      "say": "{type}/{subtype} changed after its last compile."
+    },
+    {
+      "say": "{type}/{subtype} compiled after its last change."
+    }
+  ],
+  "traps": [
+    "After a deploy, open the OmniScript in its own designer and preview it, which compiles it."
+  ]
+}

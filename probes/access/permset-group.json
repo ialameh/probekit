@@ -1,0 +1,48 @@
+{
+  "id": "access.permset-group",
+  "question": "What is inside this permission set group, and has it finished recalculating?",
+  "family": "access",
+  "params": {
+    "group": {
+      "type": "name",
+      "example": "Sales_Team"
+    }
+  },
+  "safety": {
+    "writes": false
+  },
+  "steps": [
+    {
+      "name": "grp",
+      "compare": [
+        "DeveloperName",
+        "Status"
+      ],
+      "soql": "SELECT Id, DeveloperName, MasterLabel, Status, CreatedBy.Name, CreatedDate, LastModifiedBy.Name, LastModifiedDate FROM PermissionSetGroup WHERE DeveloperName = '{group}'"
+    },
+    {
+      "name": "components",
+      "compare": [
+        "PermissionSet.Name"
+      ],
+      "when": "grp.rows === 1",
+      "soql": "SELECT PermissionSet.Name, PermissionSet.Label FROM PermissionSetGroupComponent WHERE PermissionSetGroup.DeveloperName = '{group}' ORDER BY PermissionSet.Name"
+    }
+  ],
+  "verdicts": [
+    {
+      "when": "grp.rows === 0",
+      "say": "No permission set group {group}."
+    },
+    {
+      "when": "grp.records[0].Status !== 'Updated'",
+      "say": "{group} status is {= grp.records[0].Status}: grants are not final until it reads Updated."
+    },
+    {
+      "say": "{group} holds {components.rows} permission set(s) and is up to date."
+    }
+  ],
+  "traps": [
+    "A muting permission set in the group removes grants; it appears here as a component."
+  ]
+}

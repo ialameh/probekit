@@ -1,0 +1,45 @@
+{
+  "id": "omni.active-version",
+  "question": "Which version of this OmniScript or Integration Procedure is active, and who touched each version?",
+  "family": "omni",
+  "params": {
+    "type": {
+      "type": "name",
+      "example": "Account"
+    },
+    "subtype": {
+      "type": "name",
+      "example": "Create"
+    }
+  },
+  "safety": {
+    "writes": false
+  },
+  "steps": [
+    {
+      "name": "versions",
+      "soql": "SELECT Name, VersionNumber, IsActive, IsIntegrationProcedure, CreatedBy.Name, CreatedDate, LastModifiedBy.Name, LastModifiedDate FROM OmniProcess WHERE Type = '{type}' AND SubType = '{subtype}' ORDER BY VersionNumber DESC",
+      "compare": [
+        "VersionNumber",
+        "IsActive"
+      ]
+    }
+  ],
+  "verdicts": [
+    {
+      "when": "versions.rows === 0",
+      "say": "No OmniProcess {type}/{subtype} on this org."
+    },
+    {
+      "when": "versions.records.filter(r => r.IsActive).length === 0",
+      "say": "{type}/{subtype} has {versions.rows} version(s) and none is active."
+    },
+    {
+      "say": "{type}/{subtype}: version {= versions.records.find(r => r.IsActive).VersionNumber} is active, {versions.rows} version(s) in total."
+    }
+  ],
+  "traps": [
+    "Two orgs on the same version number means a deploy overwrites in place. A higher target version survives as inactive.",
+    "A recent LastModifiedBy who is not you means someone may be mid-change. Ask before editing."
+  ]
+}

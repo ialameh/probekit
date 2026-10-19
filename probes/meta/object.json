@@ -1,0 +1,38 @@
+{
+  "id": "meta.object",
+  "question": "What is this object: label, key prefix, sharing model, and where it comes from?",
+  "family": "meta",
+  "params": {
+    "obj": {
+      "type": "sobject",
+      "example": "Account"
+    }
+  },
+  "safety": {
+    "writes": false
+  },
+  "steps": [
+    {
+      "name": "entity",
+      "compare": [
+        "QualifiedApiName",
+        "KeyPrefix",
+        "InternalSharingModel",
+        "ExternalSharingModel"
+      ],
+      "soql": "SELECT QualifiedApiName, Label, KeyPrefix, DurableId, NamespacePrefix, IsCustomSetting, InternalSharingModel, ExternalSharingModel, LastModifiedDate FROM EntityDefinition WHERE QualifiedApiName = '{obj}'"
+    }
+  ],
+  "verdicts": [
+    {
+      "when": "entity.rows === 0",
+      "say": "No object {obj} on this org."
+    },
+    {
+      "say": "{obj} exists, key prefix {= entity.records[0].KeyPrefix}."
+    }
+  ],
+  "traps": [
+    "Use this to decode a record id: the first three characters are the key prefix."
+  ]
+}

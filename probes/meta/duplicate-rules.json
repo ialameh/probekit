@@ -1,0 +1,34 @@
+{
+  "id": "meta.duplicate-rules",
+  "question": "Which duplicate rules run on this object?",
+  "family": "meta",
+  "params": {
+    "obj": {
+      "type": "sobject",
+      "example": "Account"
+    }
+  },
+  "safety": {
+    "writes": false
+  },
+  "steps": [
+    {
+      "name": "rules",
+      "compare": [
+        "DeveloperName",
+        "IsActive"
+      ],
+      "soql": "SELECT DeveloperName, MasterLabel, IsActive, SobjectType, CreatedBy.Name, CreatedDate, LastModifiedBy.Name, LastModifiedDate FROM DuplicateRule WHERE SobjectType = '{obj}' ORDER BY DeveloperName"
+    }
+  ],
+  "verdicts": [
+    {
+      "when": "rules.rows === 0",
+      "say": "No duplicate rules on {obj}."
+    },
+    {
+      "say": "{obj}: {= rules.records.filter(r => r.IsActive).length} active of {rules.rows} rule(s)."
+    }
+  ],
+  "traps": []
+}

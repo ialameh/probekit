@@ -1,0 +1,35 @@
+{
+  "id": "omni.document-template",
+  "question": "Which versions of this document template exist, and which is active?",
+  "family": "omni",
+  "params": {
+    "name": {
+      "type": "name",
+      "example": "Quote_Template"
+    }
+  },
+  "safety": {
+    "writes": false
+  },
+  "steps": [
+    {
+      "name": "versions",
+      "compare": [
+        "VersionNumber",
+        "IsActive",
+        "Status"
+      ],
+      "soql": "SELECT Name, Type, VersionNumber, IsActive, Status, CreatedBy.Name, CreatedDate, LastModifiedBy.Name, LastModifiedDate FROM DocumentTemplate WHERE Name = '{name}' ORDER BY VersionNumber DESC"
+    }
+  ],
+  "verdicts": [
+    {
+      "when": "versions.rows === 0",
+      "say": "No document template {name}."
+    },
+    {
+      "say": "{name}: {versions.rows} version(s)."
+    }
+  ],
+  "traps": []
+}

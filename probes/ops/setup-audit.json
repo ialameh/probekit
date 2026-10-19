@@ -1,0 +1,48 @@
+{
+  "id": "ops.setup-audit",
+  "question": "What changed in Setup recently, and who changed it?",
+  "family": "ops",
+  "params": {
+    "days": {
+      "type": "int",
+      "example": "7",
+      "default": "7"
+    },
+    "section": {
+      "type": "text",
+      "example": "Manage Users",
+      "optional": true
+    },
+    "user": {
+      "type": "username",
+      "example": "jane.doe@example.com",
+      "optional": true
+    },
+    "limit": {
+      "type": "int",
+      "example": "100",
+      "default": "100"
+    }
+  },
+  "safety": {
+    "writes": false
+  },
+  "steps": [
+    {
+      "name": "changes",
+      "soql": "SELECT CreatedDate, CreatedBy.Name, Action, Section, Display, DelegateUser FROM SetupAuditTrail WHERE CreatedDate = LAST_N_DAYS:{days} [[AND Section = '{section}']] [[AND CreatedBy.Username = '{user}']] ORDER BY CreatedDate DESC LIMIT {limit}"
+    }
+  ],
+  "verdicts": [
+    {
+      "when": "changes.rows === 0",
+      "say": "No Setup changes matched in the last {days} day(s)."
+    },
+    {
+      "say": "{changes.rows} Setup change(s)."
+    }
+  ],
+  "traps": [
+    "Deployments show up here under the deploying user, so a deploy and a hand edit can look alike; check ops.deploys at the same time."
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "id": "meta.custom-field",
+  "question": "Who created and last changed this custom field?",
+  "family": "meta",
+  "params": {
+    "obj": {
+      "type": "sobject",
+      "example": "Account"
+    },
+    "name": {
+      "type": "field",
+      "example": "Region"
+    }
+  },
+  "safety": {
+    "writes": false
+  },
+  "steps": [
+    {
+      "name": "entity",
+      "soql": "SELECT DurableId FROM EntityDefinition WHERE QualifiedApiName = '{obj}'"
+    },
+    {
+      "name": "field",
+      "tooling": true,
+      "compare": [
+        "DeveloperName"
+      ],
+      "when": "entity.rows === 1",
+      "soql": "SELECT Id, DeveloperName, TableEnumOrId, CreatedBy.Name, CreatedDate, LastModifiedBy.Name, LastModifiedDate FROM CustomField WHERE TableEnumOrId IN ({@entity.DurableId}) AND DeveloperName = '{name}'"
+    }
+  ],
+  "verdicts": [
+    {
+      "when": "entity.rows === 0",
+      "say": "No object {obj}."
+    },
+    {
+      "when": "field.rows === 0",
+      "say": "No custom field {name} on {obj}. Give the name without __c."
+    },
+    {
+      "say": "{obj}.{name}__c created by {= field.records[0][\"CreatedBy.Name\"]}."
+    }
+  ],
+  "traps": [
+    "DeveloperName has no __c suffix.",
+    "On an org the field was deployed to, CreatedBy is the deployer. Read authorship on the org where it was built."
+  ]
+}

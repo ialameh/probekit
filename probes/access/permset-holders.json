@@ -1,0 +1,41 @@
+{
+  "id": "access.permset-holders",
+  "question": "Who holds this permission set or permission set group?",
+  "family": "access",
+  "params": {
+    "permset": {
+      "type": "name",
+      "example": "Sales_Operations"
+    },
+    "limit": {
+      "type": "int",
+      "example": "500",
+      "default": "500"
+    }
+  },
+  "safety": {
+    "writes": false
+  },
+  "steps": [
+    {
+      "name": "holders",
+      "compare": [
+        "Assignee.Name",
+        "Assignee.IsActive"
+      ],
+      "soql": "SELECT Assignee.Name, Assignee.Username, Assignee.IsActive, PermissionSet.Name, PermissionSetGroup.DeveloperName, ExpirationDate FROM PermissionSetAssignment WHERE PermissionSet.Name = '{permset}' OR PermissionSetGroup.DeveloperName = '{permset}' ORDER BY Assignee.Name LIMIT {limit}"
+    }
+  ],
+  "verdicts": [
+    {
+      "when": "holders.rows === 0",
+      "say": "Nobody holds {permset}, or no permission set or group has that name."
+    },
+    {
+      "say": "{holders.rows} assignment(s), {= holders.records.filter(r => r[\"Assignee.IsActive\"]).length} to active users."
+    }
+  ],
+  "traps": [
+    "A user given a group appears once per permission set inside the group."
+  ]
+}

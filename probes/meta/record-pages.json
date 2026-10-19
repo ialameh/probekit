@@ -1,0 +1,43 @@
+{
+  "id": "meta.record-pages",
+  "question": "Which Lightning record pages exist for this object?",
+  "family": "meta",
+  "params": {
+    "obj": {
+      "type": "sobject",
+      "example": "Account"
+    }
+  },
+  "safety": {
+    "writes": false
+  },
+  "steps": [
+    {
+      "name": "entity",
+      "soql": "SELECT DurableId FROM EntityDefinition WHERE QualifiedApiName = '{obj}'"
+    },
+    {
+      "name": "pages",
+      "tooling": true,
+      "compare": [
+        "DeveloperName",
+        "Type"
+      ],
+      "when": "entity.rows === 1",
+      "soql": "SELECT DeveloperName, MasterLabel, Type FROM FlexiPage WHERE EntityDefinitionId IN ({@entity.DurableId}) ORDER BY DeveloperName"
+    }
+  ],
+  "verdicts": [
+    {
+      "when": "entity.rows === 0",
+      "say": "No object {obj}."
+    },
+    {
+      "say": "{obj}: {pages.rows} Lightning page(s)."
+    }
+  ],
+  "traps": [
+    "Which page a user sees is set by app, record type and profile activation; retrieve the page and its activations to answer that.",
+    "A page built with Dynamic Forms ignores page layout field changes."
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "id": "ops.code-coverage",
+  "question": "How much of this class or trigger do tests cover?",
+  "family": "ops",
+  "params": {
+    "name": {
+      "type": "name",
+      "example": "AccountService"
+    }
+  },
+  "safety": {
+    "writes": false
+  },
+  "steps": [
+    {
+      "name": "coverage",
+      "tooling": true,
+      "soql": "SELECT ApexClassOrTrigger.Name, NumLinesCovered, NumLinesUncovered FROM ApexCodeCoverageAggregate WHERE ApexClassOrTrigger.Name = '{name}'"
+    }
+  ],
+  "verdicts": [
+    {
+      "when": "coverage.rows === 0",
+      "say": "No coverage recorded for {name}. Run its tests first."
+    },
+    {
+      "say": "{name}: {= Math.round(100 * coverage.records[0].NumLinesCovered / ((coverage.records[0].NumLinesCovered + coverage.records[0].NumLinesUncovered) || 1))}% covered."
+    }
+  ],
+  "traps": [
+    "Coverage reflects the last test run on this org, not the current code if it changed since."
+  ]
+}

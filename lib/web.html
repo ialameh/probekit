@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Probe Library</title>
+<style>
+:root {
+  --bg: #f6f7f9; --panel: #ffffff; --ink: #1c2330; --muted: #5d6878; --line: #e2e6ec;
+  --accent: #2459d6; --accent-soft: #e8eefc; --code-bg: #f1f3f7; --warn: #8a5a00; --warn-soft: #fff4dc;
+  --ok: #1f7a4d; --ok-soft: #e3f4ea; --danger: #a8322a; --danger-soft: #fbe7e5;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #12151b; --panel: #1a1f27; --ink: #e6e9ef; --muted: #98a2b3; --line: #2a313c;
+    --accent: #7aa2ff; --accent-soft: #1f2a44; --code-bg: #141920; --warn: #f0c060; --warn-soft: #3a2f16;
+    --ok: #6fd3a0; --ok-soft: #173326; --danger: #ff8a80; --danger-soft: #3a1c1a;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #12151b; --panel: #1a1f27; --ink: #e6e9ef; --muted: #98a2b3; --line: #2a313c;
+  --accent: #7aa2ff; --accent-soft: #1f2a44; --code-bg: #141920; --warn: #f0c060; --warn-soft: #3a2f16;
+  --ok: #6fd3a0; --ok-soft: #173326; --danger: #ff8a80; --danger-soft: #3a1c1a;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body { background: var(--bg); color: var(--ink); font: 14px/1.5 var(--sans); }
+header { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--line); background: var(--panel); }
+header h1 { font-size: 16px; margin: 0; white-space: nowrap; }
+header .count { color: var(--muted); font-size: 13px; white-space: nowrap; }
+header .spacer { flex: 1; }
+header { flex-wrap: wrap; }
+header nav { display: flex; flex-wrap: wrap; gap: 12px; }
+a { color: var(--accent); }
+body { display: flex; flex-direction: column; }
+button, select, input { font: inherit; color: inherit; }
+.iconbtn { border: 1px solid var(--line); background: var(--panel); border-radius: 6px; padding: 4px 10px; cursor: pointer; }
+.iconbtn:hover { border-color: var(--accent); }
+main { display: grid; grid-template-columns: minmax(300px, 400px) minmax(0, 1fr); flex: 1; min-height: 0; }
+#side, #detail { min-width: 0; }
+#side { border-right: 1px solid var(--line); display: flex; flex-direction: column; min-height: 0; background: var(--panel); }
+.search { padding: 12px 12px 8px; }
+.search input { width: 100%; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); }
+.search input:focus { outline: 2px solid var(--accent-soft); border-color: var(--accent); }
+.filters { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 12px 8px; }
+.chip { border: 1px solid var(--line); background: transparent; border-radius: 999px; padding: 2px 10px; font-size: 12px; cursor: pointer; }
+.chip[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+.sortbar { display: flex; justify-content: space-between; align-items: center; padding: 0 12px 8px; color: var(--muted); font-size: 12px; }
+#list { overflow-y: auto; flex: 1; border-top: 1px solid var(--line); }
+.item { display: block; width: 100%; text-align: left; border: 0; border-bottom: 1px solid var(--line); background: transparent; padding: 10px 12px; cursor: pointer; }
+.item:hover { background: var(--bg); }
+.item[aria-current="true"] { background: var(--accent-soft); box-shadow: inset 3px 0 0 var(--accent); }
+.item .id { font-family: var(--mono); font-size: 12.5px; font-weight: 600; }
+.item .q { color: var(--muted); font-size: 13px; margin-top: 2px; }
+.item .meta { display: flex; gap: 8px; margin-top: 4px; font-size: 11.5px; color: var(--muted); }
+.empty { padding: 24px 12px; color: var(--muted); }
+#detail { overflow-y: auto; padding: 20px 28px 48px; min-width: 0; }
+.crumb { font-family: var(--mono); color: var(--muted); font-size: 12.5px; }
+#detail h2 { font-size: 20px; margin: 4px 0 10px; line-height: 1.3; }
+.tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 18px; }
+.tag { font-size: 12px; padding: 2px 8px; border-radius: 6px; background: var(--code-bg); border: 1px solid var(--line); }
+.tag.read { background: var(--ok-soft); color: var(--ok); border-color: transparent; }
+.tag.writes { background: var(--danger-soft); color: var(--danger); border-color: transparent; }
+section { margin: 22px 0; }
+section h3 { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 0 0 8px; }
+.params { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; margin-bottom: 8px; }
+.param label { display: block; font-family: var(--mono); font-size: 12.5px; margin-bottom: 3px; }
+.param label small { font-family: var(--sans); color: var(--muted); font-weight: normal; }
+.param input { width: 100%; padding: 6px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--panel); font-family: var(--mono); font-size: 12.5px; }
+.param input:focus { outline: 2px solid var(--accent-soft); border-color: var(--accent); }
+.row { display: flex; gap: 8px; align-items: center; margin-top: 10px; flex-wrap: wrap; }
+.row label { font-size: 12.5px; color: var(--muted); }
+.linkbtn { border: 0; background: none; color: var(--accent); cursor: pointer; padding: 0; font-size: 12.5px; }
+.row input { padding: 4px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--panel); font-family: var(--mono); font-size: 12.5px; width: 120px; }
+pre { margin: 0; background: var(--code-bg); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; overflow-x: auto; font: 12.5px/1.55 var(--mono); white-space: pre-wrap; word-break: break-word; }
+.codewrap { position: relative; }
+.copy { position: absolute; top: 6px; right: 6px; font-size: 11.5px; padding: 2px 8px; border-radius: 5px; border: 1px solid var(--line); background: var(--panel); cursor: pointer; }
+.kw { color: var(--accent); font-weight: 600; }
+.ph { background: var(--warn-soft); color: var(--warn); border-radius: 3px; padding: 0 2px; }
+.ref { background: var(--accent-soft); border-radius: 3px; padding: 0 2px; }
+.step { margin-bottom: 14px; }
+.step .head { display: flex; gap: 8px; align-items: baseline; margin-bottom: 6px; flex-wrap: wrap; }
+.step .name { font-family: var(--mono); font-weight: 600; }
+.step .when { font-size: 12px; color: var(--muted); }
+.step .when code, .verdict code { font-family: var(--mono); font-size: 12px; background: var(--code-bg); padding: 1px 4px; border-radius: 4px; }
+.verdict { padding: 8px 10px; border-left: 3px solid var(--line); margin-bottom: 6px; background: var(--panel); border-radius: 0 6px 6px 0; }
+.verdict .say { margin-top: 2px; }
+.verdict.fallback { border-left-color: var(--accent); }
+ul.traps { margin: 0; padding-left: 18px; }
+ul.traps li { margin-bottom: 4px; }
+.note { color: var(--muted); font-size: 12.5px; }
+mark { background: var(--warn-soft); color: inherit; border-radius: 2px; }
+@media (max-width: 760px) {
+  main { grid-template-columns: minmax(0, 1fr); height: auto; }
+  header { padding: 10px 16px; }
+  .search, .filters, .sortbar { padding-left: 16px; padding-right: 16px; }
+  .params { grid-template-columns: minmax(0, 1fr); }
+  #side { border-right: 0; max-height: 55vh; }
+  #detail { padding: 16px; }
+  header .count { display: none; }
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>Probe Library</h1>
+  <span class="count" id="count"></span>
+  <span class="spacer"></span>
+  <nav aria-label="Resources">
+    <a href="https://github.com/ialameh/probekit">GitHub</a>
+    <a href="https://github.com/ialameh/probekit/archive/refs/heads/main.zip">Download ZIP</a>
+    <a href="https://probekit.orgparity.com/getting-started.html">How to use</a>
+  </nav>
+  <button class="iconbtn" id="theme" title="Switch light or dark">Theme</button>
+</header>
+<main>
+  <aside id="side">
+    <div class="search"><input id="q" type="search" placeholder="Search: object, field, question, trap... ( / )" autocomplete="off"></div>
+    <div class="filters" id="families"></div>
+    <div class="sortbar">
+      <span id="shown"></span>
+    </div>
+    <div id="list" role="listbox"></div>
+  </aside>
+  <article id="detail"></article>
+</main>
+<script id="data" type="application/json">/*PROBES*/</script>
+<script>
+const PROBES = JSON.parse(document.getElementById('data').textContent);
+const FAMILY_TEXT = {
+  access: 'Who can see or do what', meta: 'What exists and who changed it', flow: 'Flow versions and runs',
+  omni: 'OmniStudio components', ops: 'Jobs, deploys, logs, tests', data: 'Any object, any record',
+};
+const state = { q: '', families: new Set(), current: null, values: {}, org: 'dev', ticket: '' };
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+// One searchable text per probe: id, question, objects queried, params, traps, verdicts.
+for (const p of PROBES) {
+  const objects = p.steps.map((s) => (s.soql.match(/\bFROM\s+(\{?\w+\}?)/i) || [])[1]).filter(Boolean);
+  p._objects = [...new Set(objects)];
+  p._text = [p.id, p.question, p.family, ...p._objects, ...Object.keys(p.params),
+    ...Object.values(p.params).map((x) => x.example), ...(p.traps || []), ...p.verdicts.map((v) => v.say),
+    ...p.steps.map((s) => s.soql)].join(' ').toLowerCase();
+}
+
+function matches(p) {
+  if (state.families.size && !state.families.has(p.family)) return false;
+  const terms = state.q.toLowerCase().split(/\s+/).filter(Boolean);
+  return terms.every((t) => p._text.includes(t));
+}
+function score(p) {
+  const terms = state.q.toLowerCase().split(/\s+/).filter(Boolean);
+  let s = 0;
+  for (const t of terms) {
+    if (p.id.toLowerCase().includes(t)) s += 4;
+    if (p.question.toLowerCase().includes(t)) s += 3;
+    if (p._objects.some((o) => o.toLowerCase().includes(t))) s += 3;
+  }
+  return s;
+}
+function highlight(text) {
+  const terms = state.q.split(/\s+/).filter((t) => t.length > 1);
+  let out = esc(text);
+  for (const t of terms) out = out.replace(new RegExp(`(${t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'ig'), '<mark>$1</mark>');
+  return out;
+}
+
+function renderFamilies() {
+  const counts = {};
+  for (const p of PROBES) counts[p.family] = (counts[p.family] || 0) + 1;
+  $('#families').innerHTML = Object.keys(counts).sort().map((f) =>
+    `<button class="chip" data-f="${f}" aria-pressed="${state.families.has(f)}" title="${esc(FAMILY_TEXT[f] || '')}">${f} ${counts[f]}</button>`).join('');
+}
+
+function renderList() {
+  let rows = PROBES.filter(matches);
+  rows.sort((a, b) => (state.q ? score(b) - score(a) : 0) ||
+    a.id.localeCompare(b.id));
+  $('#shown').textContent = `${rows.length} of ${PROBES.length}`;
+  $('#list').innerHTML = rows.length ? rows.map((p) => `
+    <button class="item" role="option" data-id="${p.id}" aria-current="${state.current === p.id}">
+      <div class="id">${highlight(p.id)}</div>
+      <div class="q">${highlight(p.question)}</div>
+      <div class="meta"><span>${p._objects.map(esc).join(', ')}</span>${p.safety.writes ? '<span>writes</span>' : ''}</div>
+    </button>`).join('') : '<div class="empty">No probe matches. Try an object name, like FieldPermissions or Flow.</div>';
+  return rows;
+}
+
+// Mirror of the runner's template rules, for the preview only.
+function renderSoql(tpl) {
+  const v = state.values;
+  const given = (k) => v[k] !== undefined && v[k] !== '';
+  let out = tpl.replace(/\[\[(.*?)\]\]/gs, (m, frag) => {
+    const keys = [...frag.matchAll(/\{(\w+)\}/g)].map((x) => x[1]);
+    return keys.every(given) ? frag : '';
+  }).replace(/\s+/g, ' ').trim();
+  let html = esc(out)
+    .replace(/\{@(\w+)\.([\w.]+)\}/g, '<span class="ref" title="values from step $1">&lt;$1.$2&gt;</span>')
+    .replace(/\{(\w+)\}/g, (m, k) => (given(k) ? esc(v[k]) : `<span class="ph">{${k}}</span>`));
+  html = html.replace(/\b(SELECT|FROM|WHERE|AND|OR|IN|NOT|LIKE|ORDER BY|GROUP BY|HAVING|LIMIT|DESC|ASC|COUNT|LAST_N_DAYS|null|true|false)\b/g, '<span class="kw">$1</span>');
+  return { html, text: out };
+}
+
+function commandFor(p) {
+  const parts = ['probe run', p.id, '--org', state.org || 'dev'];
+  if (state.ticket) parts.push('--ticket', state.ticket);
+  for (const [k, spec] of Object.entries(p.params)) {
+    const val = state.values[k];
+    if (val === undefined || val === '' || (spec.default !== undefined && val === spec.default)) {
+      if (!spec.optional && spec.default === undefined) parts.push(`--${k}`, `<${k}>`);
+      continue;
+    }
+    parts.push(`--${k}`, /[\s,%]/.test(val) ? `"${val}"` : val);
+  }
+  return parts.join(' ');
+}
+
+function renderDetail() {
+  const p = PROBES.find((x) => x.id === state.current);
+  if (!p) { $('#detail').innerHTML = '<p class="note">Pick a probe on the left.</p>'; return; }
+  const params = Object.entries(p.params);
+  $('#detail').innerHTML = `
+    <div class="crumb">${esc(p.family)} / ${esc(FAMILY_TEXT[p.family] || '')}</div>
+    <h2>${esc(p.question)}</h2>
+    <div class="tags">
+      <span class="tag" style="font-family:var(--mono)">${esc(p.id)}</span>
+      <span class="tag ${p.safety.writes ? 'writes' : 'read'}">${p.safety.writes ? 'writes' : 'read-only'}</span>
+      ${p.steps.some((s) => s.tooling) ? '<span class="tag">Tooling API</span>' : ''}
+      ${p.rule ? `<span class="tag">${esc(p.rule)}</span>` : ''}
+    </div>
+
+    <section>
+      <h3>Run it</h3>
+      ${params.length ? `<div class="params">${params.map(([k, s]) => `
+        <div class="param">
+          <label for="p-${k}">--${k} <small>${esc(s.type)}${s.optional ? ', optional' : ''}${s.default !== undefined ? `, default ${esc(s.default)}` : ''}</small></label>
+          <input id="p-${k}" data-k="${k}" value="${esc(state.values[k] ?? '')}" placeholder="${esc(s.example ?? '')}">
+        </div>`).join('')}</div>` : '<p class="note">No parameters.</p>'}
+      ${params.length ? '<button class="linkbtn" id="examples">Fill examples</button>' : ''}
+      <div class="row">
+        <label for="org">org</label><input id="org" value="${esc(state.org)}">
+        <label for="ticket">ticket</label><input id="ticket" value="${esc(state.ticket)}" placeholder="optional">
+      </div>
+      <div class="codewrap" style="margin-top:10px"><pre id="cmd"></pre><button class="copy" data-copy="cmd">Copy</button></div>
+    </section>
+
+    <section>
+      <h3>Steps</h3>
+      ${p.steps.map((s, i) => `
+        <div class="step">
+          <div class="head"><span class="name">${i + 1}. ${esc(s.name)}</span>
+            ${s.tooling ? '<span class="tag">Tooling API</span>' : ''}
+            ${s.when ? `<span class="when">runs when <code>${esc(s.when)}</code></span>` : ''}
+            ${s.hash ? `<span class="when">hashes ${esc(s.hash.join(', '))}</span>` : ''}
+            ${s.compare ? `<span class="when">compares ${esc(s.compare === '*' ? 'every column' : s.compare.join(', '))}</span>` : ''}
+          </div>
+          <div class="codewrap"><pre id="soql-${i}"></pre><button class="copy" data-copy="soql-${i}">Copy</button></div>
+        </div>`).join('')}
+      <p class="note">Highlighted names still need a value. Shaded ones come from an earlier step when the probe runs.</p>
+    </section>
+
+    <section>
+      <h3>What the answer means</h3>
+      ${p.verdicts.map((v) => `<div class="verdict ${v.when ? '' : 'fallback'}">
+        <div class="note">${v.when ? `when <code>${esc(v.when)}</code>` : 'otherwise'}</div>
+        <div class="say">${esc(v.say)}</div></div>`).join('')}
+    </section>
+
+    ${p.traps?.length ? `<section><h3>Traps</h3><ul class="traps">${p.traps.map((t) => `<li>${esc(t)}</li>`).join('')}</ul></section>` : ''}
+  `;
+  refreshCode(p);
+}
+
+function refreshCode(p) {
+  $('#cmd').textContent = commandFor(p);
+  p.steps.forEach((s, i) => { const el = $(`#soql-${i}`); if (el) { const r = renderSoql(s.soql); el.innerHTML = r.html; el.dataset.text = r.text; } });
+}
+
+function select(id, push = true) {
+  if (state.current !== id) state.values = {};
+  state.current = id;
+  const p = PROBES.find((x) => x.id === id);
+  if (p) for (const [k, s] of Object.entries(p.params)) if (state.values[k] === undefined) state.values[k] = s.default ?? '';
+  if (push) history.replaceState(null, '', '#' + id);
+  renderList();
+  renderDetail();
+}
+
+$('#families').addEventListener('click', (e) => {
+  const f = e.target.closest('.chip')?.dataset.f; if (!f) return;
+  state.families.has(f) ? state.families.delete(f) : state.families.add(f);
+  renderFamilies(); renderList();
+});
+$('#q').addEventListener('input', (e) => {
+  state.q = e.target.value;
+  const rows = renderList();
+  if (rows.length && !rows.some((p) => p.id === state.current)) select(rows[0].id);
+});
+$('#list').addEventListener('click', (e) => { const id = e.target.closest('.item')?.dataset.id; if (id) select(id); });
+$('#detail').addEventListener('input', (e) => {
+  const p = PROBES.find((x) => x.id === state.current); if (!p) return;
+  if (e.target.dataset.k) state.values[e.target.dataset.k] = e.target.value;
+  if (e.target.id === 'org') state.org = e.target.value;
+  if (e.target.id === 'ticket') state.ticket = e.target.value;
+  refreshCode(p);
+});
+$('#detail').addEventListener('click', async (e) => {
+  if (e.target.id === 'examples') {
+    const p = PROBES.find((x) => x.id === state.current);
+    for (const [k, s] of Object.entries(p.params)) if (!s.optional) state.values[k] = state.values[k] || s.default || s.example || '';
+    renderDetail();
+    return;
+  }
+  const btn = e.target.closest('.copy'); if (!btn) return;
+  const el = document.getElementById(btn.dataset.copy);
+  try { await navigator.clipboard.writeText(el.dataset.text ?? el.textContent); btn.textContent = 'Copied'; }
+  catch { btn.textContent = 'Select and copy'; }
+  setTimeout(() => (btn.textContent = 'Copy'), 1200);
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key === '/' && document.activeElement.tagName !== 'INPUT') { e.preventDefault(); $('#q').focus(); }
+  if ((e.key === 'ArrowDown' || e.key === 'ArrowUp') && document.activeElement === $('#q')) {
+    e.preventDefault();
+    const ids = [...document.querySelectorAll('.item')].map((x) => x.dataset.id);
+    const i = ids.indexOf(state.current) + (e.key === 'ArrowDown' ? 1 : -1);
+    if (ids[i]) { select(ids[i]); document.querySelector(`.item[data-id="${ids[i]}"]`)?.scrollIntoView({ block: 'nearest' }); }
+  }
+});
+$('#theme').addEventListener('click', () => {
+  const root = document.documentElement;
+  const dark = root.dataset.theme ? root.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+  root.dataset.theme = dark ? 'light' : 'dark';
+  try { localStorage.setItem('probekit-theme', root.dataset.theme); } catch {}
+});
+try { const t = localStorage.getItem('probekit-theme'); if (t) document.documentElement.dataset.theme = t; } catch {}
+
+$('#count').textContent = `${PROBES.length} probes`;
+renderFamilies();
+const first = PROBES.slice().sort((a, b) => a.id.localeCompare(b.id))[0];
+select(PROBES.some((p) => p.id === location.hash.slice(1)) ? location.hash.slice(1) : first.id, false);
+</script>
+</body>
+</html>

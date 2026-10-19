@@ -1,0 +1,56 @@
+{
+  "id": "flow.versions",
+  "question": "Which version of this flow is active, which is latest, and who changed each?",
+  "family": "flow",
+  "params": {
+    "name": {
+      "type": "name",
+      "example": "Account_Before_Save"
+    }
+  },
+  "safety": {
+    "writes": false
+  },
+  "steps": [
+    {
+      "name": "definition",
+      "tooling": true,
+      "compare": [
+        "ActiveVersion.VersionNumber",
+        "LatestVersion.VersionNumber"
+      ],
+      "soql": "SELECT DeveloperName, ActiveVersion.VersionNumber, LatestVersion.VersionNumber FROM FlowDefinition WHERE DeveloperName = '{name}'"
+    },
+    {
+      "name": "versions",
+      "tooling": true,
+      "compare": [
+        "VersionNumber",
+        "Status"
+      ],
+      "when": "definition.rows === 1",
+      "soql": "SELECT VersionNumber, Status, ProcessType, ApiVersion, CreatedBy.Name, CreatedDate, LastModifiedBy.Name, LastModifiedDate FROM Flow WHERE Definition.DeveloperName = '{name}' ORDER BY VersionNumber DESC"
+    }
+  ],
+  "verdicts": [
+    {
+      "when": "definition.rows === 0",
+      "say": "No flow {name}."
+    },
+    {
+      "when": "!definition.records[0]['ActiveVersion.VersionNumber']",
+      "say": "{name} has no active version: it does not run."
+    },
+    {
+      "when": "definition.records[0]['ActiveVersion.VersionNumber'] !== definition.records[0]['LatestVersion.VersionNumber']",
+      "say": "{name}: version {= definition.records[0][\"ActiveVersion.VersionNumber\"]} is active, but version {= definition.records[0][\"LatestVersion.VersionNumber\"]} is newer and not active."
+    },
+    {
+      "say": "{name}: latest version {= definition.records[0][\"ActiveVersion.VersionNumber\"]} is active."
+    }
+  ],
+  "traps": [
+    "A deploy can leave the new version as Draft or inactive. Check here after every deploy.",
+    "Retiring a flow means no active version; the definition stays."
+  ]
+}

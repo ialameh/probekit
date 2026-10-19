@@ -1,0 +1,56 @@
+{
+  "id": "data.find",
+  "question": "Which records of this object have this value in this field?",
+  "family": "data",
+  "params": {
+    "obj": {
+      "type": "sobject",
+      "example": "Account"
+    },
+    "field": {
+      "type": "field",
+      "example": "Name"
+    },
+    "value": {
+      "type": "text",
+      "example": "Acme Ltd",
+      "optional": true
+    },
+    "like": {
+      "type": "text",
+      "example": "Acme%",
+      "optional": true
+    },
+    "fields": {
+      "type": "fields",
+      "example": "Id, Name, CreatedDate, LastModifiedDate",
+      "default": "Id, CreatedBy.Name, CreatedDate, LastModifiedBy.Name, LastModifiedDate"
+    },
+    "limit": {
+      "type": "int",
+      "example": "50",
+      "default": "50"
+    }
+  },
+  "safety": {
+    "writes": false
+  },
+  "steps": [
+    {
+      "name": "records",
+      "soql": "SELECT {fields} FROM {obj} WHERE Id != null [[AND {field} = '{value}']] [[AND {field} LIKE '{like}']] ORDER BY CreatedDate DESC LIMIT {limit}"
+    }
+  ],
+  "verdicts": [
+    {
+      "when": "records.rows === 0",
+      "say": "No {obj} matched."
+    },
+    {
+      "say": "{records.rows} {obj} record(s) matched."
+    }
+  ],
+  "traps": [
+    "Pass --value for an exact match or --like with % for a pattern."
+  ]
+}

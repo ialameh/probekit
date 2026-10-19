@@ -1,0 +1,40 @@
+{
+  "id": "meta.picklist-values",
+  "question": "Which values does this picklist offer?",
+  "family": "meta",
+  "params": {
+    "obj": {
+      "type": "sobject",
+      "example": "Account"
+    },
+    "field": {
+      "type": "field",
+      "example": "Industry"
+    }
+  },
+  "safety": {
+    "writes": false
+  },
+  "steps": [
+    {
+      "name": "values",
+      "compare": [
+        "Value",
+        "IsActive"
+      ],
+      "soql": "SELECT Value, Label, IsActive, IsDefaultValue FROM PicklistValueInfo WHERE EntityParticle.EntityDefinition.QualifiedApiName = '{obj}' AND EntityParticle.QualifiedApiName = '{field}' ORDER BY Value"
+    }
+  ],
+  "verdicts": [
+    {
+      "when": "values.rows === 0",
+      "say": "{obj}.{field} has no picklist values, or is not a picklist."
+    },
+    {
+      "say": "{obj}.{field}: {values.rows} value(s)."
+    }
+  ],
+  "traps": [
+    "Values available per record type are set on the record type and are not shown here."
+  ]
+}

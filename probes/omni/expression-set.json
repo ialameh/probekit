@@ -1,0 +1,41 @@
+{
+  "id": "omni.expression-set",
+  "question": "Which versions of this expression set exist, and which is active?",
+  "family": "omni",
+  "params": {
+    "name": {
+      "type": "name",
+      "example": "Pricing_Rules"
+    }
+  },
+  "safety": {
+    "writes": false
+  },
+  "steps": [
+    {
+      "name": "versions",
+      "compare": [
+        "ApiName",
+        "VersionNumber",
+        "IsActive"
+      ],
+      "soql": "SELECT ApiName, VersionNumber, IsActive, Rank, StartDateTime, EndDateTime, LastModifiedDate FROM ExpressionSetVersion WHERE ExpressionSet.ApiName = '{name}' ORDER BY VersionNumber DESC"
+    }
+  ],
+  "verdicts": [
+    {
+      "when": "versions.rows === 0",
+      "say": "No expression set {name}."
+    },
+    {
+      "when": "versions.records.filter(r => r.IsActive).length === 0",
+      "say": "{name} has no active version."
+    },
+    {
+      "say": "{name}: {versions.rows} version(s), version {= versions.records.find(r => r.IsActive).VersionNumber} active."
+    }
+  ],
+  "traps": [
+    "New versions are their own records; the parent expression set date does not move when one is added."
+  ]
+}

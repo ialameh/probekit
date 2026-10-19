@@ -1,0 +1,41 @@
+{
+  "id": "data.duplicates",
+  "question": "Which values of this field appear on more than one record?",
+  "family": "data",
+  "params": {
+    "obj": {
+      "type": "sobject",
+      "example": "Account"
+    },
+    "field": {
+      "type": "field",
+      "example": "Name"
+    },
+    "limit": {
+      "type": "int",
+      "example": "50",
+      "default": "50"
+    }
+  },
+  "safety": {
+    "writes": false
+  },
+  "steps": [
+    {
+      "name": "dupes",
+      "soql": "SELECT {field}, COUNT(Id) n FROM {obj} WHERE {field} != null GROUP BY {field} HAVING COUNT(Id) > 1 ORDER BY COUNT(Id) DESC LIMIT {limit}"
+    }
+  ],
+  "verdicts": [
+    {
+      "when": "dupes.rows === 0",
+      "say": "No duplicate {field} values on {obj}."
+    },
+    {
+      "say": "{dupes.rows} duplicated {field} value(s) on {obj}."
+    }
+  ],
+  "traps": [
+    "Aggregate queries scan the whole object; on a large object add a date filter with data.count-by instead."
+  ]
+}

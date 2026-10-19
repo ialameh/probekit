@@ -1,0 +1,69 @@
+{
+  "id": "meta.dependencies",
+  "question": "What uses this component, and what does it use?",
+  "family": "meta",
+  "params": {
+    "name": {
+      "type": "name",
+      "example": "AccountService"
+    },
+    "type": {
+      "type": "sobject",
+      "example": "ApexClass",
+      "default": "ApexClass"
+    },
+    "namefield": {
+      "type": "field",
+      "example": "Name",
+      "default": "Name"
+    }
+  },
+  "safety": {
+    "writes": false
+  },
+  "steps": [
+    {
+      "name": "component",
+      "tooling": true,
+      "soql": "SELECT Id FROM {type} WHERE {namefield} = '{name}'"
+    },
+    {
+      "name": "used_by",
+      "tooling": true,
+      "compare": [
+        "MetadataComponentName",
+        "MetadataComponentType"
+      ],
+      "when": "component.rows > 0",
+      "soql": "SELECT MetadataComponentName, MetadataComponentType FROM MetadataComponentDependency WHERE RefMetadataComponentId IN ({@component.Id}) ORDER BY MetadataComponentType, MetadataComponentName LIMIT 2000"
+    },
+    {
+      "name": "uses",
+      "tooling": true,
+      "compare": [
+        "RefMetadataComponentName",
+        "RefMetadataComponentType"
+      ],
+      "when": "component.rows > 0",
+      "soql": "SELECT RefMetadataComponentName, RefMetadataComponentType FROM MetadataComponentDependency WHERE MetadataComponentId IN ({@component.Id}) ORDER BY RefMetadataComponentType, RefMetadataComponentName LIMIT 2000"
+    }
+  ],
+  "verdicts": [
+    {
+      "when": "component.rows === 0",
+      "say": "No {type} named {name}."
+    },
+    {
+      "when": "used_by.rows === 0 && uses.rows === 0",
+      "say": "Nothing tracked references {name} and it references nothing tracked. Search the source as well."
+    },
+    {
+      "say": "{name}: used by {used_by.rows}, uses {uses.rows}."
+    }
+  ],
+  "traps": [
+    "Filter by component Id: the name columns cannot be filtered on.",
+    "For types named by DeveloperName (Flow definitions, LWC, custom objects) pass --namefield DeveloperName.",
+    "References built at run time (a class name in a string, OmniStudio JSON, custom metadata values) are not tracked here."
+  ]
+}

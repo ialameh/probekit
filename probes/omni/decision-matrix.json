@@ -1,0 +1,49 @@
+{
+  "id": "omni.decision-matrix",
+  "question": "Which versions of this decision matrix are enabled, and what rows does the enabled one hold?",
+  "family": "omni",
+  "params": {
+    "name": {
+      "type": "name",
+      "example": "Discount_Matrix"
+    }
+  },
+  "safety": {
+    "writes": false
+  },
+  "steps": [
+    {
+      "name": "versions",
+      "compare": [
+        "VersionNumber",
+        "IsEnabled"
+      ],
+      "soql": "SELECT Id, Name, VersionNumber, IsEnabled, StartDateTime, EndDateTime, LastModifiedDate FROM CalculationMatrixVersion WHERE CalculationMatrix.Name = '{name}' ORDER BY VersionNumber DESC"
+    },
+    {
+      "name": "rows",
+      "compare": [
+        "InputData",
+        "OutputData"
+      ],
+      "when": "versions.rows > 0",
+      "soql": "SELECT InputData, OutputData FROM CalculationMatrixRow WHERE CalculationMatrixVersion.CalculationMatrix.Name = '{name}' AND CalculationMatrixVersion.IsEnabled = true LIMIT 2000"
+    }
+  ],
+  "verdicts": [
+    {
+      "when": "versions.rows === 0",
+      "say": "No decision matrix {name}."
+    },
+    {
+      "when": "versions.records.filter(r => r.IsEnabled).length === 0",
+      "say": "{name} has no enabled version."
+    },
+    {
+      "say": "{name}: {rows.rows} row(s) in the enabled version(s)."
+    }
+  ],
+  "traps": [
+    "An enabled matrix is not proof it runs. Confirm an active process looks it up before treating it as live."
+  ]
+}

@@ -1,0 +1,52 @@
+{
+  "id": "meta.layouts",
+  "question": "Which page layouts does this object have, and which profile gets which?",
+  "family": "meta",
+  "params": {
+    "obj": {
+      "type": "sobject",
+      "example": "Account"
+    }
+  },
+  "safety": {
+    "writes": false
+  },
+  "steps": [
+    {
+      "name": "entity",
+      "soql": "SELECT DurableId FROM EntityDefinition WHERE QualifiedApiName = '{obj}'"
+    },
+    {
+      "name": "layouts",
+      "tooling": true,
+      "compare": [
+        "Name"
+      ],
+      "when": "entity.rows === 1",
+      "soql": "SELECT Name, LayoutType, CreatedBy.Name, CreatedDate, LastModifiedBy.Name, LastModifiedDate FROM Layout WHERE TableEnumOrId IN ({@entity.DurableId}) ORDER BY Name"
+    },
+    {
+      "name": "assignments",
+      "tooling": true,
+      "compare": [
+        "Profile.Name",
+        "Layout.Name",
+        "RecordType.Name"
+      ],
+      "when": "entity.rows === 1",
+      "soql": "SELECT Profile.Name, Layout.Name, RecordType.Name FROM ProfileLayout WHERE TableEnumOrId IN ({@entity.DurableId}) ORDER BY Profile.Name LIMIT 2000"
+    }
+  ],
+  "verdicts": [
+    {
+      "when": "entity.rows === 0",
+      "say": "No object {obj}."
+    },
+    {
+      "say": "{obj}: {layouts.rows} layout(s), {assignments.rows} assignment(s)."
+    }
+  ],
+  "traps": [
+    "A record page built with Dynamic Forms ignores the layout's fields; check meta.record-pages first."
+  ]
+}

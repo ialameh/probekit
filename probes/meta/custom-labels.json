@@ -1,0 +1,44 @@
+{
+  "id": "meta.custom-labels",
+  "question": "Which custom labels match this name or text?",
+  "family": "meta",
+  "params": {
+    "name": {
+      "type": "name",
+      "example": "Error_Required",
+      "optional": true
+    },
+    "text": {
+      "type": "text",
+      "example": "required",
+      "optional": true
+    }
+  },
+  "safety": {
+    "writes": false
+  },
+  "steps": [
+    {
+      "name": "labels",
+      "tooling": true,
+      "compare": [
+        "Name",
+        "Value",
+        "Language"
+      ],
+      "soql": "SELECT Name, Value, Language, NamespacePrefix FROM ExternalString WHERE Name != null [[AND Name = '{name}']] [[AND Value LIKE '%{text}%']] ORDER BY Name LIMIT 200"
+    }
+  ],
+  "verdicts": [
+    {
+      "when": "labels.rows === 0",
+      "say": "No labels matched."
+    },
+    {
+      "say": "{labels.rows} label(s) matched."
+    }
+  ],
+  "traps": [
+    "Pass --text to find where a message shown to a user comes from."
+  ]
+}

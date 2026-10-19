@@ -1,0 +1,45 @@
+{
+  "id": "access.record-access",
+  "question": "What access does this user have to this record, as the platform calculates it?",
+  "family": "access",
+  "params": {
+    "user": {
+      "type": "username",
+      "example": "jane.doe@example.com"
+    },
+    "record": {
+      "type": "id",
+      "example": "001000000000000AAA"
+    }
+  },
+  "safety": {
+    "writes": false
+  },
+  "steps": [
+    {
+      "name": "u",
+      "soql": "SELECT Id FROM User WHERE Username = '{user}'"
+    },
+    {
+      "name": "access",
+      "when": "u.rows === 1",
+      "soql": "SELECT RecordId, HasReadAccess, HasEditAccess, HasDeleteAccess, HasTransferAccess, MaxAccessLevel FROM UserRecordAccess WHERE UserId = {@u.Id} AND RecordId = '{record}'"
+    }
+  ],
+  "verdicts": [
+    {
+      "when": "u.rows === 0",
+      "say": "No user {user}."
+    },
+    {
+      "when": "access.rows === 0 || !access.records[0].HasReadAccess",
+      "say": "{user} cannot read {record}."
+    },
+    {
+      "say": "{user} has {= access.records[0].MaxAccessLevel} access to {record}."
+    }
+  ],
+  "traps": [
+    "This is the sharing answer only. Field access is separate (access.field-grants)."
+  ]
+}

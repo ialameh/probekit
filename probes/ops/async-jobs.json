@@ -1,0 +1,52 @@
+{
+  "id": "ops.async-jobs",
+  "question": "Which async Apex jobs ran recently, and did they fail?",
+  "family": "ops",
+  "params": {
+    "days": {
+      "type": "int",
+      "example": "7",
+      "default": "7"
+    },
+    "apexclass": {
+      "type": "name",
+      "example": "NightlyCleanupBatch",
+      "optional": true
+    },
+    "status": {
+      "type": "name",
+      "example": "Failed",
+      "optional": true
+    },
+    "limit": {
+      "type": "int",
+      "example": "50",
+      "default": "50"
+    }
+  },
+  "safety": {
+    "writes": false
+  },
+  "steps": [
+    {
+      "name": "jobs",
+      "soql": "SELECT ApexClass.Name, JobType, Status, ExtendedStatus, NumberOfErrors, JobItemsProcessed, TotalJobItems, CreatedBy.Name, CreatedDate, CompletedDate FROM AsyncApexJob WHERE CreatedDate = LAST_N_DAYS:{days} [[AND ApexClass.Name = '{apexclass}']] [[AND Status = '{status}']] ORDER BY CreatedDate DESC LIMIT {limit}"
+    }
+  ],
+  "verdicts": [
+    {
+      "when": "jobs.rows === 0",
+      "say": "No jobs matched in the last {days} day(s)."
+    },
+    {
+      "when": "jobs.records.some(r => r.Status === \"Failed\" || r.NumberOfErrors > 0)",
+      "say": "{= jobs.records.filter(r => r.Status === \"Failed\" || r.NumberOfErrors > 0).length} of {jobs.rows} job(s) failed or had errors."
+    },
+    {
+      "say": "{jobs.rows} job(s), none failed."
+    }
+  ],
+  "traps": [
+    "A Completed batch can still carry errors: read NumberOfErrors and ExtendedStatus."
+  ]
+}

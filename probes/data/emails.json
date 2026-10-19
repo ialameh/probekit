@@ -1,0 +1,37 @@
+{
+  "id": "data.emails",
+  "question": "Which emails were logged against this record?",
+  "family": "data",
+  "params": {
+    "id": {
+      "type": "id",
+      "example": "001000000000000AAA"
+    },
+    "limit": {
+      "type": "int",
+      "example": "20",
+      "default": "20"
+    }
+  },
+  "safety": {
+    "writes": false
+  },
+  "steps": [
+    {
+      "name": "emails",
+      "soql": "SELECT Subject, Status, Incoming, MessageDate, CreatedBy.Name FROM EmailMessage WHERE RelatedToId = '{id}' ORDER BY MessageDate DESC LIMIT {limit}"
+    }
+  ],
+  "verdicts": [
+    {
+      "when": "emails.rows === 0",
+      "say": "No emails logged against {id}."
+    },
+    {
+      "say": "{emails.rows} email(s) logged against {id}."
+    }
+  ],
+  "traps": [
+    "An email sent by automation is logged here when the send logs activity; a missing row does not prove the email was not sent."
+  ]
+}

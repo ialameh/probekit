@@ -1,0 +1,42 @@
+{
+  "id": "data.record",
+  "question": "What does this one record hold right now?",
+  "family": "data",
+  "params": {
+    "obj": {
+      "type": "sobject",
+      "example": "Account"
+    },
+    "id": {
+      "type": "id",
+      "example": "001000000000000AAA"
+    },
+    "fields": {
+      "type": "fields",
+      "example": "Id, Name, CreatedDate, LastModifiedDate",
+      "default": "Id, CreatedBy.Name, CreatedDate, LastModifiedBy.Name, LastModifiedDate"
+    }
+  },
+  "safety": {
+    "writes": false
+  },
+  "steps": [
+    {
+      "name": "record",
+      "compare": "*",
+      "soql": "SELECT {fields} FROM {obj} WHERE Id = '{id}'"
+    }
+  ],
+  "verdicts": [
+    {
+      "when": "record.rows === 0",
+      "say": "No {obj} {id}, or the running user cannot see it."
+    },
+    {
+      "say": "{obj} {id} found."
+    }
+  ],
+  "traps": [
+    "Run with --fields to choose columns. Field access applies: a hidden field errors rather than reading blank."
+  ]
+}

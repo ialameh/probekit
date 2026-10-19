@@ -1,0 +1,38 @@
+{
+  "id": "meta.custom-metadata",
+  "question": "What rows does this custom metadata type hold, and do they match across orgs?",
+  "family": "meta",
+  "params": {
+    "type": {
+      "type": "sobject",
+      "example": "Feature_Setting__mdt"
+    },
+    "fields": {
+      "type": "fields",
+      "example": "DeveloperName, MasterLabel",
+      "default": "DeveloperName, MasterLabel"
+    }
+  },
+  "safety": {
+    "writes": false
+  },
+  "steps": [
+    {
+      "name": "rows",
+      "compare": "*",
+      "soql": "SELECT {fields} FROM {type} ORDER BY DeveloperName LIMIT 2000"
+    }
+  ],
+  "verdicts": [
+    {
+      "when": "rows.rows === 0",
+      "say": "{type} has no rows."
+    },
+    {
+      "say": "{type}: {rows.rows} row(s)."
+    }
+  ],
+  "traps": [
+    "Values that name an org, a user or an endpoint differ between orgs by design; they belong in per-org config, not in deployable rows."
+  ]
+}

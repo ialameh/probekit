@@ -1,0 +1,42 @@
+{
+  "id": "meta.field-exists",
+  "question": "Does this field exist on the org, regardless of who can see it?",
+  "family": "meta",
+  "params": {
+    "obj": {
+      "type": "sobject",
+      "example": "Account"
+    },
+    "field": {
+      "type": "field",
+      "example": "Industry"
+    }
+  },
+  "safety": {
+    "writes": false
+  },
+  "steps": [
+    {
+      "name": "field",
+      "tooling": true,
+      "soql": "SELECT QualifiedApiName, DataType, Length, IsCalculated, LastModifiedDate, LastModifiedBy.Name FROM FieldDefinition WHERE EntityDefinition.QualifiedApiName = '{obj}' AND QualifiedApiName = '{field}'",
+      "compare": [
+        "QualifiedApiName",
+        "DataType",
+        "Length"
+      ]
+    }
+  ],
+  "verdicts": [
+    {
+      "when": "field.rows === 0",
+      "say": "{obj}.{field} does not exist on this org."
+    },
+    {
+      "say": "{obj}.{field} exists."
+    }
+  ],
+  "traps": [
+    "Use this, not describe: describe hides fields the running user cannot read."
+  ]
+}

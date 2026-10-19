@@ -1,0 +1,44 @@
+{
+  "id": "access.logins",
+  "question": "When and how did this user last log in?",
+  "family": "access",
+  "params": {
+    "user": {
+      "type": "username",
+      "example": "jane.doe@example.com"
+    },
+    "limit": {
+      "type": "int",
+      "example": "20",
+      "default": "20"
+    }
+  },
+  "safety": {
+    "writes": false
+  },
+  "steps": [
+    {
+      "name": "u",
+      "soql": "SELECT Id FROM User WHERE Username = '{user}'"
+    },
+    {
+      "name": "logins",
+      "when": "u.rows === 1",
+      "soql": "SELECT LoginTime, Status, Application, LoginType, Platform, Browser FROM LoginHistory WHERE UserId IN ({@u.Id}) ORDER BY LoginTime DESC LIMIT {limit}"
+    }
+  ],
+  "verdicts": [
+    {
+      "when": "u.rows === 0",
+      "say": "No user {user}."
+    },
+    {
+      "when": "logins.rows === 0",
+      "say": "No logins recorded for {user}."
+    },
+    {
+      "say": "Last login {= logins.records[0].LoginTime}: {= logins.records[0].Status}."
+    }
+  ],
+  "traps": []
+}

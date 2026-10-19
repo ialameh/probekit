@@ -1,0 +1,44 @@
+{
+  "id": "data.count-by",
+  "question": "How are recent records of this object spread across the values of this field?",
+  "family": "data",
+  "params": {
+    "obj": {
+      "type": "sobject",
+      "example": "Account"
+    },
+    "field": {
+      "type": "field",
+      "example": "Industry"
+    },
+    "days": {
+      "type": "int",
+      "example": "30",
+      "default": "30"
+    },
+    "limit": {
+      "type": "int",
+      "example": "50",
+      "default": "50"
+    }
+  },
+  "safety": {
+    "writes": false
+  },
+  "steps": [
+    {
+      "name": "counts",
+      "soql": "SELECT {field}, COUNT(Id) n FROM {obj} WHERE CreatedDate = LAST_N_DAYS:{days} GROUP BY {field} ORDER BY COUNT(Id) DESC LIMIT {limit}"
+    }
+  ],
+  "verdicts": [
+    {
+      "when": "counts.rows === 0",
+      "say": "No {obj} created in the last {days} day(s)."
+    },
+    {
+      "say": "{counts.rows} distinct {field} value(s)."
+    }
+  ],
+  "traps": []
+}
