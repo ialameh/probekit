@@ -9,7 +9,7 @@ const timer=setTimeout(()=>{console.error('Connection check timed out. Verify th
 try{
  await client.connect(transport);
  const {tools}=await client.listTools();
- const expected=['search_investigations','describe_investigation','build_query_plan','analyse_exports','compare_exports','get_investigation_bundle','get_investigation_example'];
+ const expected=['search_investigations','describe_investigation','build_query_plan','analyse_exports','compare_exports','get_investigation_bundle','get_investigation_example','analyse_investigation_pack'];
  if(expected.some(name=>!tools.some(t=>t.name===name)))throw Error('A required tool is missing.');
  const result=await client.callTool({name:'search_investigations',arguments:{limit:1}});
  if(result.isError)throw Error('Catalogue query failed.');

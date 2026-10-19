@@ -53,6 +53,7 @@ not display an interactive prompt.
 |---|---|---|
 | `search_investigations` | Optional `query`, `family`, `limit` | Matching IDs, questions and step counts |
 | `get_investigation_bundle` | Optional `id` | Six task bundles, or one bundle with ordered investigations |
+| `analyse_investigation_pack` | Bundle `id`, `checks`, optional `skipped`, `notes` | Validated combined report with explicit evidence gaps |
 | `get_investigation_example` | `id`, optional `variant` (`A` or `B`) | Fictional inputs ready for export analysis |
 | `describe_investigation` | `id` | Parameters, API requirements, query templates and limitations |
 | `build_query_plan` | `id`, `parameters`, optional `exports` | Generated queries and ready/waiting/skipped step states |
@@ -143,3 +144,18 @@ Dependencies are installed separately and retain their upstream licences and not
 
 Run `pnpm test` for core workflow tests and `pnpm run test:mcp` for the optional SDK and
 stdio integration tests. Neither command connects to Salesforce.
+
+## Combined pack report
+
+1. Call `get_investigation_bundle` with `{"id":"licence-review"}`.
+2. Build queries and collect exports for the relevant investigations.
+3. Call `analyse_investigation_pack` with the bundle ID and a `checks` array. Each
+   check contains `id`, `parameters`, `exports` and, for fictional examples, `sample: true`.
+4. Optionally include `skipped: [{"id":"access.dormant-users","reason":"Outside scope"}]`
+   and pack-level `notes`. Omitted checks are reported as not started.
+
+Every check is validated through the same query and import rules as `analyse_exports`.
+Duplicate or unrelated checks and mixed sample/real evidence are rejected. Keep the
+entire pack request under 8 MB; the transport's encoded message limit also applies.
+The combined report contains counts, findings and query context, not raw result rows.
+Calls are stateless: supply the checks again when updating the report.

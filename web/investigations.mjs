@@ -1,3 +1,4 @@
+import {captureCheck,combinedReport,packDefinition} from './investigation-packs.mjs';
 import {bundles,searchCatalogue} from './investigation-discovery.mjs';
 import catalogue from './investigation-catalogue.mjs';
 import {parameters,plan,importResult,compareResults,reportText,LIMITS} from './investigation-engine.mjs';
@@ -8,6 +9,7 @@ const node=(tag,text,cls)=>{const e=document.createElement(tag);if(text!==undefi
 const btn=(text,fn,cls='secondary')=>{const e=node('button',text,cls);e.type='button';e.onclick=fn;return e;};
 const link=(text,href)=>{const e=node('a',text);e.href=href;return e;};
 let probe=null,runs=[],isSample=false,epoch=0;
+let activePack=null,packEntries=[],packNotes='';
 const draft=()=>Object.fromEntries(Object.entries(probe.params).map(([k,s])=>[k,s.default??'']));
 const makeRun=i=>({label:`Result ${i===0?'A':'B'}`,draft:draft(),params:null,imported:Object.create(null),version:0});
 function reportHref(){const u=new URL('https://github.com/ialameh/probekit/issues/new');u.searchParams.set('template','bug.yml');if(probe)u.searchParams.set('title','[Bug] '+probe.id);return u.href;}
@@ -17,7 +19,7 @@ function clearData(){epoch++;isSample=false;runs=[makeRun(0),makeRun(1)];$('#sam
 function route(){
  const id=location.hash.slice(1);probe=catalogue.find(p=>p.id===id)??null;epoch++;
  $('#catalogue').hidden=!!probe;$('#workspace').hidden=!probe;
- if(!probe){runs=[];$('#workspace').hidden=true;$('#run-panels').replaceChildren();for(const id of ['findings','differences','related','traps'])$('#'+id).replaceChildren();$('#notes').value='';document.title='Salesforce investigations · ProbeKit by OrgParity';renderCatalogue();return;}
+ if(!probe){renderPack();runs=[];$('#workspace').hidden=true;$('#run-panels').replaceChildren();for(const id of ['findings','differences','related','traps'])$('#'+id).replaceChildren();$('#notes').value='';document.title='Salesforce investigations · ProbeKit by OrgParity';renderCatalogue();return;}
  const info=guidance(probe);$('#title').textContent=info.title;$('#question').textContent=probe.question;$('#family-label').textContent=info.family.title;$('#guidance').textContent=info.next;
  document.title=`${info.title} · ProbeKit by OrgParity`;
  $('#workspace [data-report]').href=reportHref();
@@ -32,7 +34,7 @@ function renderCatalogue(){
   for(const p of group.rows){const a=link('',`#${p.id}`);a.className='investigation-card';a.append(node('span',FAMILIES[p.family].title,'eyebrow'),node('h3',guidance(p).title),node('p',p.question),node('span',`${p.steps.length} query step${p.steps.length===1?'':'s'}${p.steps.some(s=>s.tooling)?' · Includes Tooling API':''}`,'small'));grid.append(a);}section.append(grid);$('#cards').append(section);}
  $('#empty').hidden=rows.length!==0;
 }
-for(const bundle of bundles){const card=node('details');card.append(node('summary',bundle.title),node('p',bundle.description));const list=node('ol');for(const id of bundle.probes){const p=catalogue.find(p=>p.id===id);if(p){const item=node('li');item.append(link(guidance(p).title,'#'+id));list.append(item);}}card.append(list);$('#bundles').append(card);}
+for(const bundle of bundles){const card=node('details');card.append(node('summary',bundle.title),node('p',bundle.description));const list=node('ol');for(const id of bundle.probes){const p=catalogue.find(p=>p.id===id);if(p){const item=node('li');item.append(link(guidance(p).title,'#'+id));list.append(item);}}card.append(list,btn('Start investigation pack',()=>startPack(bundle.id)));$('#bundles').append(card);}
 for(const [key,f] of Object.entries(FAMILIES)){const option=node('option',f.title);option.value=key;$('#family').append(option);}
 $('#search').oninput=renderCatalogue;$('#family').onchange=renderCatalogue;window.addEventListener('hashchange',route);
 function currentSteps(run){return run.params?plan(probe,run.params,run.imported):[];}
@@ -112,6 +114,7 @@ function summaries(){
 }
 function comparisons(items){return items.length===2?probe.steps.map(s=>({name:s.name,...compareResults(items[0].steps.find(x=>x.name===s.name),items[1].steps.find(x=>x.name===s.name),s)})):[];}
 function renderSummary(){
+ if(activePack&&probe){packEntries=packEntries.filter(e=>e.id!==probe.id);renderPack();}
  const items=summaries(),hasAny=items.some(r=>r.steps.length);$('#findings-panel').hidden=!hasAny;
  if(!hasAny){for(const id of ['findings','differences','related','traps'])$('#'+id).replaceChildren();$('#progress').textContent='';return;}
  const all=items.flatMap(r=>r.steps),completed=all.filter(s=>s.state==='complete').length;
@@ -135,13 +138,14 @@ function renderSummary(){
  $('#related').replaceChildren();for(const id of guidance(probe).related){const p=catalogue.find(x=>x.id===id);if(p)$('#related').append(link(guidance(p).title,'#'+id));}
  if(probe.family==='access')$('#related').append(link('Dedicated field-access checker','/field-access.html'));
 }
+$('#notes').oninput=()=>{if(activePack){packEntries=packEntries.filter(e=>e.id!==probe.id);renderPack();}};
 $('#compare-mode').onchange=()=>{
  const enabled=$('#compare-mode').checked;$('#run-panels').classList.toggle('compare',enabled);
  if(enabled){if(!runs[1].params)runs[1].draft={...runs[0].draft};renderRun(1);}
  else{runs[1].version++;$('#run-1')?.remove();}
  renderSummary();
 };
-$('#clear').onclick=()=>{clearData();announce('All investigation data cleared.');};
+$('#clear').onclick=()=>{activePack=null;packEntries=[];packNotes='';renderPack();clearData();announce('All investigation and pack data cleared.');};
 $('#sample').onclick=async()=>{
  const ticket=++epoch;$('#sample').disabled=true;
  try{
@@ -157,4 +161,38 @@ $('#download-json').onclick=()=>{
  const items=summaries();const data={tool:'ProbeKit by OrgParity',investigation:probe.id,question:probe.question,sample:isSample,createdAt:new Date().toISOString(),scope:'Supplied exports only. No independent verification of org identity, query execution, freshness or completeness.',notes:$('#notes').value,runs:items.map(r=>({label:r.label,params:r.params,findings:r.findings,steps:r.steps.map(s=>({name:s.name,state:s.state,query:s.query,reason:s.reason,rows:s.records?.length,columns:s.columns,warnings:s.warnings,importedAt:s.importedAt}))})),comparisons:comparisons(items).map(c=>({name:c.name,state:c.state,reason:c.reason,scope:c.scope,columns:c.columns,onlyARows:c.onlyA?.reduce((n,r)=>n+r.count,0),onlyBRows:c.onlyB?.reduce((n,r)=>n+r.count,0),warnings:c.warnings}))};
  download(JSON.stringify(data,null,2),'application/json','json');
 };
+
+function startPack(id){
+ activePack=packDefinition(id);packEntries=[];packNotes='';
+ if(probe?.id===activePack.probes[0])clearData();
+ else location.hash=activePack.probes[0];
+ renderPack();announce('Pack started. Save each check before moving on.');
+}
+function nextCheck(){const id=activePack.probes.find(id=>!packEntries.some(e=>e.id===id));location.hash=id??'';renderPack();}
+function packDownload(extension){
+ const data=combinedReport(activePack.id,packEntries,packNotes);
+ const text=extension==='json'?JSON.stringify(data,null,2):data.report;
+ const url=URL.createObjectURL(new Blob([text],{type:extension==='json'?'application/json':'text/plain;charset=utf-8'}));
+ const a=link('',url);a.download=`probekit-pack-${activePack.id}${data.sample?'-sample':''}.${extension}`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+function renderPack(){
+ const panel=$('#pack-panel');panel.hidden=!activePack;panel.replaceChildren();if(!activePack)return;
+ const data=combinedReport(activePack.id,packEntries,packNotes);
+ panel.append(node('h2',activePack.title),node('p',`${data.counts.reviewed} reviewed · ${data.counts.partial} partial · ${data.counts.skipped} skipped · ${data.counts['not started']} not started`));
+ if(probe&&activePack.probes.includes(probe.id))panel.append(btn('Work on this check ↓',()=>{$('#workspace').scrollIntoView({behavior:'smooth'});$('#title').setAttribute('tabindex','-1');$('#title').focus({preventScroll:true});}));
+ panel.append(node('p','Save each check before moving on. Only summaries stay in this tab; raw exports are discarded when you change investigations. Reopening or editing a check removes its saved summary until you save it again. Reloading clears the pack.','small'));
+ if(data.sample)panel.append(node('p','FICTIONAL SAMPLE PACK — not an org assessment','notice'));
+ const list=node('ol');
+ for(const id of activePack.probes){const item=node('li'),p=catalogue.find(p=>p.id===id),entry=packEntries.find(e=>e.id===id);item.append(link(guidance(p).title,'#'+id),document.createTextNode(' · '+(entry?.status??'not started')));list.append(item);}panel.append(list);
+ const error=node('p','','error');error.setAttribute('role','alert');
+ if(probe&&activePack.probes.includes(probe.id)){
+  const actions=node('div',undefined,'actions');
+  actions.append(btn('Save check and continue',()=>{try{const items=summaries(),entry=captureCheck(probe,items,{sample:isSample,notes:$('#notes').value,comparisons:comparisons(items)});const entries=[...packEntries.filter(e=>e.id!==probe.id),entry];combinedReport(activePack.id,entries,packNotes);packEntries=entries;nextCheck();announce('Check summary saved.');}catch(e){error.textContent=e.message;}}));
+  const reason=node('input');reason.maxLength=300;reason.placeholder='Reason for skipping this check';reason.setAttribute('aria-label','Reason for skipping this check');
+  actions.append(reason,btn('Skip check',()=>{if(!reason.value.trim()){error.textContent='Give a reason so the report explains the gap.';return;}packEntries=[...packEntries.filter(e=>e.id!==probe.id),{id:probe.id,status:'skipped',reason:reason.value.trim()}];nextCheck();}));panel.append(actions);
+ }
+ const label=node('label','Pack notes (optional)'),notes=node('textarea');notes.maxLength=10000;notes.value=packNotes;notes.oninput=()=>{packNotes=notes.value;};label.append(notes);panel.append(label);
+ const actions=node('div',undefined,'actions');actions.append(btn('Download pack (.txt)',()=>packDownload('txt')),btn('Download pack (.json)',()=>packDownload('json')),btn('Clear pack',()=>{activePack=null;packEntries=[];packNotes='';if(probe)clearData();renderPack();announce('Pack and current investigation cleared.');}));
+ panel.append(actions,error,node('p','Reports include partial checks and gaps. Reviewed does not mean passed. No cross-check correlation or org identity verification is performed. Review parameters, queries and notes before sharing. Starting another pack replaces this one.','small'));
+}
 route();

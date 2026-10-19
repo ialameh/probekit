@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.7.0
+
+- Added six guided investigation packs with saved check summaries and combined text/JSON reports.
+- Kept partial, skipped and unstarted checks explicit, with reasons for skipped checks.
+- Prevented mixing fictional samples and supplied exports in one pack.
+- Added the MCP `analyse_investigation_pack` tool with shared validation and bounded inputs.
+- Kept pack summaries in tab memory and invalidated saved checks when reopened or edited.
+
 ## 0.6.0
 
 - Expanded the catalogue to 73 investigations, adding assignment expiry, frozen and dormant users, permission-set group status, user and permission-set licence capacity, approvals, queued tests, inactive record owners, missing values and stale records.

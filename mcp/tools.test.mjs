@@ -2,7 +2,7 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {loadProbes} from '../lib/engine.mjs';
 import {sampleParameters,sampleRows} from '../web/investigation-samples.mjs';
-import {searchInvestigations,describeInvestigation,buildPlan,analyseExports,compareExports,investigationBundles,investigationExample,catalogueCount} from './tools.mjs';
+import {searchInvestigations,describeInvestigation,buildPlan,analyseExports,compareExports,investigationBundles,investigationExample,catalogueCount,analysePack} from './tools.mjs';
 async function fixture(p,variant='A'){
  const parameters=sampleParameters(p),exports={};
  for(const d of p.steps){const s=(await buildPlan({id:p.id,parameters,exports})).steps.find(s=>s.name===d.name);if(s.state==='ready')exports[s.name]={query:s.query,text:JSON.stringify(sampleRows({...d,query:s.query},parameters,variant))};}
@@ -51,4 +51,18 @@ test('every example replays with fictional labelling through analysis and compar
   const {id:_,...runA}=a.analysisInput,{id:__,...runB}=b.analysisInput;
   assert.equal((await compareExports({id:p.id,a:runA,b:runB})).sample,true);
  }
+});
+
+test('pack analysis validates evidence, gaps, membership and sample separation',async()=>{
+ const a=(await investigationExample({id:'access.license-capacity'})).analysisInput;
+ const b=(await investigationExample({id:'access.permission-license-capacity'})).analysisInput;
+ const result=await analysePack({id:'licence-review',checks:[a],skipped:[{id:'access.dormant-users',reason:'Not in scope'}]});
+ assert.equal(result.counts.reviewed,1);assert.equal(result.counts.skipped,1);assert.equal(result.counts['not started'],2);assert.equal(result.sample,true);
+ assert.ok(!JSON.stringify(result).includes('"records":'));assert.match(result.report,/FICTIONAL SAMPLE PACK/);
+ await assert.rejects(analysePack({id:'licence-review',checks:[a,{...b,sample:false}]}),/separate packs/);
+ await assert.rejects(analysePack({id:'licence-review',checks:[a,a]}),/unique members/);
+ await assert.rejects(analysePack({id:'data-quality',checks:[a]}),/unique members/);
+ const bad=structuredClone(a);Object.values(bad.exports)[0].query+=' LIMIT 1';
+ await assert.rejects(analysePack({id:'licence-review',checks:[bad]}),/differs/);
+ const partial=await analysePack({id:'licence-review',checks:[{id:a.id,parameters:a.parameters}]});assert.equal(partial.counts.partial,1);
 });

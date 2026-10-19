@@ -110,3 +110,20 @@ The workspace cannot independently verify the org, query execution, result fresh
 | ops.scheduled-jobs | ops | 1 | 0 |
 | ops.setup-audit | ops | 1 | 0 |
 | ops.test-results | ops | 1 | 0 |
+
+## Guided packs and combined reports
+
+Expand a task bundle and choose **Start investigation pack**. Build and import each
+check as usual, then choose **Save check and continue**. You can save a partial check,
+or choose **Skip check** with a reason. The report keeps these gaps visible alongside
+checks that were never started. Use **Download pack** for a text or JSON report.
+
+Saved summaries stay in tab memory while raw exports are discarded when changing
+investigations. Reopening or editing a check invalidates its saved summary. Save again
+after making changes. Starting another pack replaces the current one; clearing or
+reloading discards it. Downloaded files remain on your device.
+
+Use separate packs for fictional samples and supplied exports. A combined report does
+not correlate identities across checks or verify a common org, time window or scope.
+Reviewed means the required exports were supplied or conditions skipped query steps;
+it is not an org health score, root-cause conclusion or deployment approval.

@@ -30,6 +30,17 @@ Comparisons use declared comparison columns where available, otherwise exact
 exported columns. Duplicate row counts are preserved; source/configuration columns
 are fingerprinted. Equal selected values do not establish whole-org parity.
 
+## Investigation packs
+
+Start one of the six packs from the workspace. Save each check’s summary before moving
+on, or skip it with a reason. Download one combined text or JSON report that shows
+reviewed, partial, skipped and unstarted checks. A reviewed check is not a pass verdict.
+
+Only saved summaries stay in the tab when moving between investigations. Reopening or
+editing a check removes its saved summary until saved again. Reloading or clearing
+removes the pack. Fictional samples and supplied exports cannot be combined in one pack.
+Reports can include parameters, queries and notes; review them before sharing.
+
 ## Browser field-access checker
 
 [Start an investigation](https://probekit.orgparity.com/field-access.html) without

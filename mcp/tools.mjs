@@ -1,3 +1,4 @@
+import {captureCheck,combinedReport,packDefinition} from '../web/investigation-packs.mjs';
 import {bundles,searchCatalogue} from '../web/investigation-discovery.mjs';
 import {sampleParameters,sampleRows} from '../web/investigation-samples.mjs';
 import {version} from '../lib/release.mjs';
@@ -60,4 +61,15 @@ export async function compareExports({id,a,b,includeValues=false}){
   return {name:s.name,state:c.state,columns:c.columns,scope:c.scope,warnings:c.warnings,onlyACount:c.onlyA.reduce((n,r)=>n+r.count,0),onlyBCount:c.onlyB.reduce((n,r)=>n+r.count,0),...(includeValues?{onlyA:c.onlyA.slice(0,20),onlyB:c.onlyB.slice(0,20),truncated:c.onlyA.length>20||c.onlyB.length>20}:{})};
  });
  return {id,sample:left.sample||right.sample,mixedSampleContext:left.sample!==right.sample,parametersMatch:JSON.stringify(left.params)===JSON.stringify(right.params),comparisons,scope,context:'Parameter differences can explain differences between results. Review both query contexts.'};
+}
+
+export async function analysePack({id,checks=[],skipped=[],notes=''}){
+ const pack=packDefinition(id);
+ if(!Array.isArray(checks)||!Array.isArray(skipped)||checks.length+skipped.length>pack.probes.length)throw Error('Too many pack checks.');
+ if(Buffer.byteLength(JSON.stringify({checks,skipped,notes}))>MAX_RUN_BYTES)throw Error('Keep the whole pack request under 8 MB.');
+ const entries=[],seen=new Set();
+ for(const c of [...checks,...skipped]){if(!pack.probes.includes(c.id)||seen.has(c.id))throw Error('Pack checks must be unique members of this pack.');seen.add(c.id);}
+ for(const c of checks){const p=probe(c.id),r=await prepare(p,c);entries.push(captureCheck(p,[r],{sample:r.sample}));}
+ for(const c of skipped){if(typeof c.reason!=='string'||!c.reason.trim()||c.reason.length>300)throw Error('Each skipped check needs a reason of at most 300 characters.');entries.push({id:c.id,status:'skipped',reason:c.reason.trim()});}
+ return {version,...combinedReport(id,entries,notes)};
 }
