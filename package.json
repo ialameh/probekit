@@ -1,10 +1,10 @@
 {
   "name": "probekit",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "author": "Sam Alameh <sam@alameh.com>",
   "description": "Named, reusable, read-only-by-default Salesforce org probes. Each probe is a JSON file: one question, typed parameters, declared safety, ordered queries, and plain-language verdicts.",
   "type": "module",
   "bin": { "probe": "probe.mjs" },
-  "scripts": { "test": "node --test engine.test.mjs", "build:web": "node scripts/build-web.mjs" },
+  "scripts": { "test": "node --test engine.test.mjs web/access-analysis.test.mjs", "build:web": "node scripts/build-web.mjs" },
   "engines": { "node": ">=20" }
 }

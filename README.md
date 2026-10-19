@@ -1,5 +1,18 @@
 # probekit
 
+A free Salesforce tool by [OrgParity](https://orgparity.com).
+
+## Browser field-access checker
+
+[Start an investigation](https://probekit.orgparity.com/field-access.html) without
+installing software. Build three read-only queries, paste or select JSON/CSV
+exports, and download a findings report. A fictional sample is included.
+
+Results are processed locally in the browser tab and are not uploaded or saved
+in browser storage. The checker matches profile and direct permission-set grants;
+it does not calculate complete effective access. Group muting, object and record
+access, assignment activation and expiry, and screen visibility require separate checks.
+
 Named, reusable Salesforce org probes. A probe answers one question about an org,
 the same way every time, and says what the answer means.
 

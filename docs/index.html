@@ -3,11 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Probe Library</title>
+<title>ProbeKit · Free Salesforce tools by OrgParity</title>
+<meta name="description" content="Free Salesforce tools from OrgParity. Investigate field access in your browser and browse 61 reusable probes for metadata, permissions, flows and data.">
+<link rel="canonical" href="https://probekit.orgparity.com/">
 <style>
 :root {
   --bg: #f6f7f9; --panel: #ffffff; --ink: #1c2330; --muted: #5d6878; --line: #e2e6ec;
-  --accent: #2459d6; --accent-soft: #e8eefc; --code-bg: #f1f3f7; --warn: #8a5a00; --warn-soft: #fff4dc;
+  --accent: #176450; --accent-soft: #e9eee5; --code-bg: #f1f3f7; --warn: #8a5a00; --warn-soft: #fff4dc;
   --ok: #1f7a4d; --ok-soft: #e3f4ea; --danger: #a8322a; --danger-soft: #fbe7e5;
   --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -33,6 +35,8 @@ header .count { color: var(--muted); font-size: 13px; white-space: nowrap; }
 header .spacer { flex: 1; }
 header { flex-wrap: wrap; }
 header nav { display: flex; flex-wrap: wrap; gap: 12px; }
+.brand-note { display: block; font-size: 11px; font-weight: normal; }
+.start-here { padding: 12px 16px; background: var(--accent-soft); border-bottom: 1px solid var(--line); font-size: 14px; }
 a { color: var(--accent); }
 body { display: flex; flex-direction: column; }
 button, select, input { font: inherit; color: inherit; }
@@ -105,16 +109,18 @@ mark { background: var(--warn-soft); color: inherit; border-radius: 2px; }
 </head>
 <body>
 <header>
-  <h1>Probe Library</h1>
+  <h1>ProbeKit <span class="brand-note">A free tool by <a href="https://orgparity.com">OrgParity</a></span></h1>
   <span class="count" id="count"></span>
   <span class="spacer"></span>
   <nav aria-label="Resources">
+    <a href="https://probekit.orgparity.com/field-access.html">Field-access checker</a>
     <a href="https://github.com/ialameh/probekit">GitHub</a>
     <a href="https://github.com/ialameh/probekit/archive/refs/heads/main.zip">Download ZIP</a>
     <a href="https://probekit.orgparity.com/getting-started.html">How to use</a>
   </nav>
   <button class="iconbtn" id="theme" title="Switch light or dark">Theme</button>
 </header>
+<div class="start-here"><strong>No installation needed.</strong> <a href="https://probekit.orgparity.com/field-access.html">Investigate a user’s field access</a> with a guided query workflow, local result analysis and a downloadable report.</div>
 <main>
   <aside id="side">
     <div class="search"><input id="q" type="search" placeholder="Search: object, field, question, trap... ( / )" autocomplete="off"></div>
