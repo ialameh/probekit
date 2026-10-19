@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.5.0
+
+- Added a starting guide and five-minute fictional comparison walkthrough.
+- Added practical guides for missing fields, flow versions and failed jobs.
+- Added local MCP connection-check and configuration commands.
+- Added public bug and investigation-request forms with fictional-example guidance.
+
 ## 0.4.0
 
 - Added an optional local MCP server for discovery, query planning, export analysis and comparison.

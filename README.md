@@ -2,7 +2,7 @@
 
 A free Salesforce investigation tool by [OrgParity](https://orgparity.com).
 
-[Use online](https://probekit.orgparity.com/investigations.html) · [Download](https://github.com/ialameh/probekit/releases/latest/download/probekit.zip) · [Getting started](https://probekit.orgparity.com/getting-started.html) · [Release notes](CHANGELOG.md)
+[Start here](https://probekit.orgparity.com/start.html) · [Use online](https://probekit.orgparity.com/investigations.html) · [Download](https://github.com/ialameh/probekit/releases/latest/download/probekit.zip) · [Getting started](https://probekit.orgparity.com/getting-started.html) · [Release notes](CHANGELOG.md)
 
 Investigate access, metadata, flows, OmniStudio, operations and data with 61 guided workflows. Build read-only queries, analyse JSON/CSV exports, compare results and download findings. Browser analysis requires no installation or account.
 
@@ -183,3 +183,9 @@ the browser and CLI continue to work without them. See [MCP setup and usage](doc
 ```
 pnpm test
 ```
+
+## Feedback
+
+[Report a bug or request an investigation](https://github.com/ialameh/probekit/issues/new/choose).
+Issues are public: use fictional examples and exclude credentials, org identifiers,
+client names and real exports.

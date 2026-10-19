@@ -9,7 +9,8 @@ Use Node.js 20 or newer and pnpm. From the ProbeKit folder:
 
 ```sh
 pnpm --dir mcp install --frozen-lockfile
-pnpm run test:mcp
+pnpm --dir mcp check
+pnpm --dir mcp config
 ```
 
 Only this integration needs dependencies. The browser workspace and original CLI
@@ -17,6 +18,13 @@ remain usable without this installation. Keep the `mcp` folder inside the comple
 ProbeKit checkout; it imports the shared catalogue and analysis engine.
 
 ## Connect
+
+The `check` command verifies a local stdio handshake, tool discovery and catalogue access
+without connecting to an org. The `config` command prints a configuration using your
+actual Node executable and server paths, including correctly escaped Windows paths.
+Copy only the JSON object into your client’s equivalent settings. These commands do not
+change client settings or persist data. To print JSON without package-manager headings,
+run `node mcp/config.mjs` from the project folder.
 
 Configure a local stdio server in your MCP client. Use `node` directly so package-manager
 output cannot interfere with protocol messages. The following is a common configuration

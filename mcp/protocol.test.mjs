@@ -21,3 +21,12 @@ test('stdio handshake, tool discovery, all tool calls and validation',{timeout:2
  }finally{await client.close();}
  assert.equal(stderr,'');
 });
+
+test('setup commands produce usable config and a successful connection check',{timeout:25000},async()=>{
+ const {execFile}=await import('node:child_process');const {promisify}=await import('node:util');const exec=promisify(execFile);
+ const config=JSON.parse((await exec(process.execPath,[fileURLToPath(new URL('./config.mjs',import.meta.url))])).stdout);
+ assert.equal(config.mcpServers.probekit.command,process.execPath);
+ assert.equal(config.mcpServers.probekit.args[0],fileURLToPath(new URL('./server.mjs',import.meta.url)));
+ const check=await exec(process.execPath,[fileURLToPath(new URL('./check.mjs',import.meta.url))],{timeout:22000});
+ assert.match(check.stdout,/PASS: local stdio connection, five tools and 61 investigations/);assert.equal(check.stderr,'');
+});
