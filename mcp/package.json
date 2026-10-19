@@ -1,0 +1,21 @@
+{
+  "name": "probekit-mcp",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Optional local MCP integration for ProbeKit investigations",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node server.mjs",
+    "test": "node --test tools.test.mjs protocol.test.mjs"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/server": "2.3.1",
+    "zod": "4.3.6"
+  },
+  "devDependencies": {
+    "@modelcontextprotocol/client": "2.3.1"
+  }
+}

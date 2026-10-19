@@ -172,6 +172,12 @@ probekit finds `.probekit/config.json` by walking up from the current folder.
 - Every run appends a row to `.probekit/usage/<id>.csv`: when, org, ticket, params, verdict.
   That log is the probe's history of what it was used for.
 
+## Optional MCP integration
+
+The local MCP server exposes investigation discovery, query planning, export analysis
+and comparisons to compatible clients. Its dependencies are installed separately;
+the browser and CLI continue to work without them. See [MCP setup and usage](docs/mcp.md).
+
 ## Test
 
 ```

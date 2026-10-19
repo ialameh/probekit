@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.4.0
+
+- Added an optional local MCP server for discovery, query planning, export analysis and comparison.
+- Reused the browser investigation engine with exact-query validation and bounded imports.
+- Added catalogue-wide MCP workflow tests and a stdio protocol integration test.
+
 ## 0.3.0
 
 - Added a browser investigation workspace covering all 61 catalogue probes.
